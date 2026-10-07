@@ -36,19 +36,27 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     const password = process.env.DB_PASSWORD || '';
     const database = process.env.DB_DATABASE || 'control_ventas';
 
-    try {
-      this.logger.log(`Conectando a MySQL en ${host}:${port}...`);
-      // 1. Verificar y crear la base de datos si no existe
-      const connection = await mysql.createConnection({
-        host,
-        port,
-        user,
-        password,
-        connectTimeout: 2500,
-      });
+    const useSsl = process.env.DB_SSL === 'true';
+    const ssl = useSsl ? { rejectUnauthorized: false } : undefined;
 
-      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-      await connection.end();
+    try {
+      this.logger.log(`Conectando a MySQL en ${host}:${port}... (SSL: ${useSsl ? 'habilitado' : 'deshabilitado'})`);
+      // 1. Verificar y crear la base de datos si no existe (seguro para servicios cloud)
+      try {
+        const connection = await mysql.createConnection({
+          host,
+          port,
+          user,
+          password,
+          ssl,
+          connectTimeout: 5000,
+        });
+
+        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+        await connection.end();
+      } catch (dbCreateErr: any) {
+        this.logger.debug?.(`Verificación de CREATE DATABASE omitida (${dbCreateErr.message})`);
+      }
 
       // 2. Inicializar TypeORM DataSource
       this.dataSource = new DataSource({
@@ -58,6 +66,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         username: user,
         password,
         database,
+        ssl,
         entities: [ProductEntity, SalesRecordEntity],
         synchronize: process.env.DB_SYNCHRONIZE !== 'false',
         logging: false,
