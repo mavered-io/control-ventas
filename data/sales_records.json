@@ -1,0 +1,1826 @@
+[
+  {
+    "id": "36a98e27-6813-4a08-93a1-4a4fbeaeacf5",
+    "folio": "0002",
+    "fecha": "2026-10-04",
+    "vendedor": "Isabel Hdez",
+    "rutaOUnidad": "Unidad de Reparto",
+    "cambioInicial": 0,
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 13,
+        "precioUnitario": 160,
+        "neto": 2080
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 3,
+        "precioUnitario": 270,
+        "neto": 810
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 12,
+        "precioUnitario": 160,
+        "neto": 1920
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "otrosPreciosVenta": 0,
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 1,
+        "esperado": 1,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 2,
+        "esperado": 2,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 3,
+        "esperado": 3,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [
+      {
+        "id": "g_1791162521802",
+        "concepto": "Fruta",
+        "monto": 67,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162531906",
+        "concepto": "Queso",
+        "monto": 60,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162555600",
+        "concepto": "Alambre",
+        "monto": 85,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162564777",
+        "concepto": "Consome",
+        "monto": 30,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162574643",
+        "concepto": "Tortilla",
+        "monto": 5,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162581927",
+        "concepto": "Tortilla",
+        "monto": 10,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162636204",
+        "concepto": "Baños",
+        "monto": 12,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162662290",
+        "concepto": "Leche",
+        "monto": 20,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162669373",
+        "concepto": "Empanada",
+        "monto": 15,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162675698",
+        "concepto": "Bolillo",
+        "monto": 20,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791162885126",
+        "concepto": "Lugar",
+        "monto": 150,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791163043515",
+        "concepto": "Transferencia Bancaria Cta. Isabel",
+        "monto": 170,
+        "tipo": "transferencia"
+      }
+    ],
+    "billetes": {
+      "b500": 0,
+      "b200": 1,
+      "b100": 8,
+      "b50": 12,
+      "b20": 3,
+      "m10": 10,
+      "m5": 14,
+      "m2": 2,
+      "m1": 26,
+      "m05": 30
+    },
+    "ajusteAdicional": 0,
+    "resumen": {
+      "totalPaquetesEnviadosReal": 20,
+      "totalValorEnviado": 3750,
+      "totalPaquetesVendidos": 14,
+      "totalVendidoNeto": 2460,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 2460,
+      "totalPaquetesDevueltos": 6,
+      "totalPaquetesEsperadosDevueltos": 6,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 474,
+      "totalTransferencias": 170,
+      "totalGastosGeneral": 644,
+      "saldoConTransferencia": 1986,
+      "saldoSinCambio": 1816,
+      "efectivoEsperadoEnCaja": 1816,
+      "totalEfectivoFisico": 1875,
+      "faltaSobra": 59,
+      "ajusteAdicional": 0,
+      "saldoFinal": 1816,
+      "estaCuadrado": false
+    },
+    "notas": "",
+    "createdAt": "2026-10-05T01:24:16.719Z",
+    "updatedAt": "2026-10-05T01:24:18.743Z"
+  },
+  {
+    "id": "94428221-6e6b-4ffd-b479-f951f1820f72",
+    "folio": "0001",
+    "fecha": "2026-10-05",
+    "vendedor": "Ruta 1",
+    "rutaOUnidad": "Unidad de Reparto",
+    "cambioInicial": 0,
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "otrosPreciosVenta": 0,
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [],
+    "billetes": {
+      "b500": 0,
+      "b200": 0,
+      "b100": 0,
+      "b50": 0,
+      "b20": 0,
+      "m10": 0,
+      "m5": 0,
+      "m2": 0,
+      "m1": 0,
+      "m05": 0
+    },
+    "ajusteAdicional": 0,
+    "resumen": {
+      "totalPaquetesEnviadosReal": 0,
+      "totalValorEnviado": 0,
+      "totalPaquetesVendidos": 0,
+      "totalVendidoNeto": 0,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 0,
+      "totalPaquetesDevueltos": 0,
+      "totalPaquetesEsperadosDevueltos": 0,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 0,
+      "totalTransferencias": 0,
+      "totalGastosGeneral": 0,
+      "saldoConTransferencia": 0,
+      "saldoSinCambio": 0,
+      "efectivoEsperadoEnCaja": 0,
+      "totalEfectivoFisico": 0,
+      "faltaSobra": 0,
+      "ajusteAdicional": 0,
+      "saldoFinal": 0,
+      "estaCuadrado": true
+    },
+    "notas": "",
+    "createdAt": "2026-10-04T06:13:52.333Z",
+    "updatedAt": "2026-10-04T06:13:52.333Z"
+  },
+  {
+    "id": "39472cba-aef8-4fb4-a2c9-595fb0b94f94",
+    "folio": "0001",
+    "fecha": "2026-10-05",
+    "vendedor": "Ruta 1",
+    "rutaOUnidad": "Unidad de Reparto",
+    "cambioInicial": 0,
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "otrosPreciosVenta": 0,
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [],
+    "billetes": {
+      "b500": 0,
+      "b200": 0,
+      "b100": 0,
+      "b50": 0,
+      "b20": 0,
+      "m10": 0,
+      "m5": 0,
+      "m2": 0,
+      "m1": 0,
+      "m05": 0
+    },
+    "ajusteAdicional": 0,
+    "resumen": {
+      "totalPaquetesEnviadosReal": 0,
+      "totalValorEnviado": 0,
+      "totalPaquetesVendidos": 0,
+      "totalVendidoNeto": 0,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 0,
+      "totalPaquetesDevueltos": 0,
+      "totalPaquetesEsperadosDevueltos": 0,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 0,
+      "totalTransferencias": 0,
+      "totalGastosGeneral": 0,
+      "saldoConTransferencia": 0,
+      "saldoSinCambio": 0,
+      "efectivoEsperadoEnCaja": 0,
+      "totalEfectivoFisico": 0,
+      "faltaSobra": 0,
+      "ajusteAdicional": 0,
+      "saldoFinal": 0,
+      "estaCuadrado": true
+    },
+    "notas": "",
+    "createdAt": "2026-10-04T05:57:43.816Z",
+    "updatedAt": "2026-10-04T05:57:46.111Z"
+  },
+  {
+    "id": "a00f4496-b838-43a1-94e9-cdfd0cbf0b9c",
+    "folio": "CV-325425",
+    "fecha": "2026-10-04",
+    "vendedor": "Ruta 1",
+    "rutaOUnidad": "Unidad de Reparto",
+    "cambioInicial": 0,
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m6",
+        "producto": "Muslo con Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m7",
+        "producto": "Muslo con Costilla",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "precioUnitario": 270,
+        "neto": 0
+      }
+    ],
+    "otrosPreciosVenta": 0,
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [],
+    "billetes": {
+      "b500": 0,
+      "b200": 0,
+      "b100": 0,
+      "b50": 0,
+      "b20": 0,
+      "m10": 0,
+      "m5": 0,
+      "m2": 0,
+      "m1": 0,
+      "m05": 0
+    },
+    "ajusteAdicional": -75,
+    "resumen": {
+      "totalPaquetesEnviadosReal": 0,
+      "totalValorEnviado": 0,
+      "totalPaquetesVendidos": 0,
+      "totalVendidoNeto": 0,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 0,
+      "totalPaquetesDevueltos": 0,
+      "totalPaquetesEsperadosDevueltos": 0,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 0,
+      "totalTransferencias": 0,
+      "totalGastosGeneral": 0,
+      "saldoConTransferencia": 0,
+      "saldoSinCambio": 0,
+      "efectivoEsperadoEnCaja": 0,
+      "totalEfectivoFisico": 0,
+      "faltaSobra": 0,
+      "ajusteAdicional": -75,
+      "saldoFinal": -75,
+      "estaCuadrado": true
+    },
+    "notas": "",
+    "createdAt": "2026-10-04T05:29:44.598Z",
+    "updatedAt": "2026-10-04T05:29:46.951Z"
+  },
+  {
+    "id": "7cd50f32-bcaa-4961-b2ad-00803e6dd3c9",
+    "folio": "CV-038858",
+    "fecha": "2026-10-04",
+    "vendedor": "Ruta 1",
+    "rutaOUnidad": "Unidad de Reparto",
+    "cambioInicial": "0.00",
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 21,
+        "precioUnitario": 160,
+        "neto": 3360
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m6",
+        "producto": "Muslo con Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m7",
+        "producto": "Muslo con Costilla",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 11,
+        "precioUnitario": 160,
+        "neto": 1760
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "otrosPreciosVenta": "0.00",
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 10,
+        "esperado": 10,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [
+      {
+        "id": "g1",
+        "concepto": "Reglamentos",
+        "monto": 100,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g2",
+        "concepto": "Transferencia",
+        "monto": 240,
+        "tipo": "transferencia",
+        "notas": "Gts Trans 300 / 540"
+      },
+      {
+        "id": "g3",
+        "concepto": "Tortillas",
+        "monto": 10,
+        "tipo": "efectivo"
+      }
+    ],
+    "billetes": {
+      "b500": 5,
+      "b200": 1,
+      "b100": 1,
+      "b50": 0,
+      "b20": 0,
+      "m10": 1,
+      "m5": 0,
+      "m2": 0,
+      "m1": 0,
+      "m05": 0
+    },
+    "ajusteAdicional": "-75.00",
+    "resumen": {
+      "totalPaquetesEnviadosReal": 27,
+      "totalValorEnviado": 4760,
+      "totalPaquetesVendidos": 17,
+      "totalVendidoNeto": 3160,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 3160,
+      "totalPaquetesDevueltos": 10,
+      "totalPaquetesEsperadosDevueltos": 10,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 110,
+      "totalTransferencias": 240,
+      "totalGastosGeneral": 350,
+      "saldoConTransferencia": 3050,
+      "saldoSinCambio": 2810,
+      "efectivoEsperadoEnCaja": 2810,
+      "totalEfectivoFisico": 2810,
+      "faltaSobra": 0,
+      "ajusteAdicional": -75,
+      "saldoFinal": 2735,
+      "estaCuadrado": true
+    },
+    "notas": "",
+    "createdAt": "2026-10-04T02:15:46.913Z",
+    "updatedAt": "2026-10-04T02:15:46.913Z"
+  },
+  {
+    "id": "80c0ed98-016d-4e4a-bb57-f6e2b4013705",
+    "folio": "CV-EXCEL-9521",
+    "fecha": "2026-10-04",
+    "vendedor": "Ruta Campechano",
+    "rutaOUnidad": "Unidad de Reparto 01",
+    "cambioInicial": "0.00",
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 18,
+        "precioUnitario": 160,
+        "neto": 2880
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m6",
+        "producto": "Muslo con Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m7",
+        "producto": "Muslo con Costilla",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 18,
+        "precioUnitario": 160,
+        "neto": 2880
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "otrosPreciosVenta": "0.00",
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [
+      {
+        "id": "g_1791079373325",
+        "concepto": "Reglamentos",
+        "monto": 100,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079384857",
+        "concepto": "Tortillas",
+        "monto": 10,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079390949",
+        "concepto": "Pan",
+        "monto": 74,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079399768",
+        "concepto": "Desayuno",
+        "monto": 114,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079409002",
+        "concepto": "Pollo Comido",
+        "monto": 160,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079425342",
+        "concepto": "Tienda Neto",
+        "monto": 41,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079431902",
+        "concepto": "Baño",
+        "monto": 6,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079440418",
+        "concepto": "Gasolina",
+        "monto": 105,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g_1791079456770",
+        "concepto": "Transferencia",
+        "monto": 240,
+        "tipo": "efectivo"
+      }
+    ],
+    "billetes": {
+      "b500": 1,
+      "b200": 9,
+      "b100": 4,
+      "b50": 11,
+      "b20": 4,
+      "m10": 2,
+      "m5": 10,
+      "m2": 9,
+      "m1": 11,
+      "m05": 2
+    },
+    "ajusteAdicional": "-75.00",
+    "resumen": {
+      "totalPaquetesEnviadosReal": 24,
+      "totalValorEnviado": 4280,
+      "totalPaquetesVendidos": 24,
+      "totalVendidoNeto": 4280,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 4280,
+      "totalPaquetesDevueltos": 0,
+      "totalPaquetesEsperadosDevueltos": 0,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 850,
+      "totalTransferencias": 0,
+      "totalGastosGeneral": 850,
+      "saldoConTransferencia": 3430,
+      "saldoSinCambio": 3430,
+      "efectivoEsperadoEnCaja": 3430,
+      "totalEfectivoFisico": 3430,
+      "faltaSobra": 0,
+      "ajusteAdicional": -75,
+      "saldoFinal": 3355,
+      "estaCuadrado": true
+    },
+    "notas": "Hoja de control importada desde el Excel original",
+    "createdAt": "2026-10-04T02:05:40.780Z",
+    "updatedAt": "2026-10-04T02:05:40.780Z"
+  },
+  {
+    "id": "b4728dbf-6ed8-4ce8-b164-d94f4446ace5",
+    "folio": "CV-EXCEL-001",
+    "fecha": "2026-10-04",
+    "vendedor": "Ruta Campechano",
+    "rutaOUnidad": "Unidad de Reparto 01",
+    "cambioInicial": "0.00",
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 21,
+        "precioUnitario": 160,
+        "neto": 3360
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m6",
+        "producto": "Muslo con Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m7",
+        "producto": "Muslo con Costilla",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 11,
+        "precioUnitario": 160,
+        "neto": 1760
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "otrosPreciosVenta": "0.00",
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 10,
+        "esperado": 10,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [
+      {
+        "id": "g1",
+        "concepto": "Reglamentos",
+        "monto": 100,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g2",
+        "concepto": "Transferencia",
+        "monto": 240,
+        "tipo": "transferencia",
+        "notas": "Gts Trans 300 / 540"
+      },
+      {
+        "id": "g3",
+        "concepto": "Tortillas",
+        "monto": 10,
+        "tipo": "efectivo"
+      }
+    ],
+    "billetes": {
+      "b500": 0,
+      "b200": 0,
+      "b100": 0,
+      "b50": 0,
+      "b20": 0,
+      "m10": 0,
+      "m5": 0,
+      "m2": 0,
+      "m1": 0,
+      "m05": 0
+    },
+    "ajusteAdicional": "-75.00",
+    "resumen": {
+      "totalPaquetesEnviadosReal": 27,
+      "totalValorEnviado": 4760,
+      "totalPaquetesVendidos": 17,
+      "totalVendidoNeto": 3160,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 3160,
+      "totalPaquetesDevueltos": 10,
+      "totalPaquetesEsperadosDevueltos": 10,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 110,
+      "totalTransferencias": 240,
+      "totalGastosGeneral": 350,
+      "saldoConTransferencia": 3050,
+      "saldoSinCambio": 2810,
+      "efectivoEsperadoEnCaja": 2810,
+      "totalEfectivoFisico": 0,
+      "faltaSobra": -2810,
+      "ajusteAdicional": -75,
+      "saldoFinal": 2735,
+      "estaCuadrado": false
+    },
+    "notas": "Hoja de control importada desde el Excel original",
+    "createdAt": "2026-10-04T01:55:14.749Z",
+    "updatedAt": "2026-10-04T01:55:14.749Z"
+  },
+  {
+    "id": "3bf2d2ce-ec0f-41d5-a11d-a366581c1377",
+    "folio": "CV-EXCEL-4101",
+    "fecha": "2026-10-04",
+    "vendedor": "Ruta Campechano",
+    "rutaOUnidad": "Unidad de Reparto 01",
+    "cambioInicial": 0,
+    "enviados": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "cantidad": 0,
+        "real": 21,
+        "precioUnitario": 160,
+        "neto": 3360
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "real": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "cantidad": 0,
+        "real": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "movimientos": [
+      {
+        "id": "m1",
+        "producto": "Campechano",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m2",
+        "producto": "Pollo",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m3",
+        "producto": "Costilla",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m4",
+        "producto": "Familiar",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m5",
+        "producto": "Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m6",
+        "producto": "Muslo con Chamorro",
+        "entradas": 0,
+        "salidas": 0
+      },
+      {
+        "id": "m7",
+        "producto": "Muslo con Costilla",
+        "entradas": 0,
+        "salidas": 0
+      }
+    ],
+    "vendidos": [
+      {
+        "id": "v1",
+        "producto": "Campechano",
+        "cantidad": 11,
+        "precioUnitario": 160,
+        "neto": 1760
+      },
+      {
+        "id": "v2",
+        "producto": "Pollo",
+        "cantidad": 0,
+        "precioUnitario": 160,
+        "neto": 0
+      },
+      {
+        "id": "v3",
+        "producto": "Costilla",
+        "cantidad": 2,
+        "precioUnitario": 160,
+        "neto": 320
+      },
+      {
+        "id": "v4",
+        "producto": "Familiar",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      },
+      {
+        "id": "v5",
+        "producto": "Chamorro",
+        "cantidad": 2,
+        "precioUnitario": 270,
+        "neto": 540
+      }
+    ],
+    "otrosPreciosVenta": 0,
+    "devoluciones": [
+      {
+        "id": "1",
+        "producto": "Campechano",
+        "devueltoReal": 10,
+        "esperado": 10,
+        "diferencia": 0
+      },
+      {
+        "id": "2",
+        "producto": "Pollo",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "3",
+        "producto": "Costilla",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "4",
+        "producto": "Familiar",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      },
+      {
+        "id": "5",
+        "producto": "Chamorro",
+        "devueltoReal": 0,
+        "esperado": 0,
+        "diferencia": 0
+      }
+    ],
+    "gastos": [
+      {
+        "id": "g1",
+        "concepto": "Reglamentos",
+        "monto": 100,
+        "tipo": "efectivo"
+      },
+      {
+        "id": "g2",
+        "concepto": "Transferencia",
+        "monto": 240,
+        "tipo": "transferencia",
+        "notas": "Gts Trans 300 / 540"
+      },
+      {
+        "id": "g3",
+        "concepto": "Tortillas",
+        "monto": 10,
+        "tipo": "efectivo"
+      }
+    ],
+    "billetes": {
+      "b500": 5,
+      "b200": 1,
+      "b100": 1,
+      "b50": 0,
+      "b20": 0,
+      "m10": 1,
+      "m5": 0,
+      "m2": 0,
+      "m1": 0,
+      "m05": 0
+    },
+    "ajusteAdicional": -75,
+    "resumen": {
+      "totalPaquetesEnviadosReal": 27,
+      "totalValorEnviado": 4760,
+      "totalPaquetesVendidos": 17,
+      "totalVendidoNeto": 3160,
+      "otrosPreciosVenta": 0,
+      "totalVendidoFinal": 3160,
+      "totalPaquetesDevueltos": 10,
+      "totalPaquetesEsperadosDevueltos": 10,
+      "diferenciaPaquetesTotal": 0,
+      "cambioInicial": 0,
+      "totalGastosEfectivo": 110,
+      "totalTransferencias": 240,
+      "totalGastosGeneral": 350,
+      "saldoConTransferencia": 3050,
+      "saldoSinCambio": 2810,
+      "efectivoEsperadoEnCaja": 2810,
+      "totalEfectivoFisico": 2810,
+      "faltaSobra": 0,
+      "ajusteAdicional": -75,
+      "saldoFinal": 2735,
+      "estaCuadrado": true
+    },
+    "notas": "Hoja de control importada desde el Excel original",
+    "createdAt": "2026-10-04T01:40:33.159Z",
+    "updatedAt": "2026-10-04T01:40:33.159Z"
+  }
+]

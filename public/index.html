@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Control de Ventas & Liquidación Móvil</title>
+  <link rel="manifest" href="/manifest.json">
+  <!-- Google Fonts: Plus Jakarta Sans, JetBrains Mono & Cinzel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="dark-theme">
+  <div id="app" class="mobile-container">
+    <!-- Top Header Formal Ejecutivo -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="brand">
+          <div class="brand-crest" title="Sistema Oficial de Control de Ventas">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">Control & Liquidación de Ventas</h1>
+            <div class="brand-meta-line">
+              <span class="brand-folio-badge" id="headerFolio">Folio: 0001</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btnToggleDashboard" class="btn-chip btn-outline-chip desktop-toggle-btn" title="Alternar entre Vista Completa y Vista por Pestañas">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <span>Vista Completa</span>
+          </button>
+          <button id="btnHeaderSave" class="btn-chip btn-gold-chip desktop-only-btn" title="Guardar Corte Diario">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            <span>Guardar Corte</span>
+          </button>
+          <button id="btnOpenHistory" class="btn-icon" title="Ver Historial de Cortes">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          </button>
+          <button id="btnToggleTheme" class="btn-icon" title="Cambiar tema">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Route, Date & Folio Bar Formal -->
+      <div class="route-date-bar">
+        <div class="input-inline">
+          <span class="icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </span>
+          <span class="field-label-tag">FECHA</span>
+          <input type="date" id="recordDate" class="clean-input">
+        </div>
+        <div class="input-inline">
+          <span class="icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </span>
+          <span class="field-label-tag">RESPONSABLE</span>
+          <input type="text" id="recordSeller" class="clean-input" placeholder="Ruta / Responsable" value="Ruta 1">
+        </div>
+        <div class="input-inline folio-field-wrap">
+          <span class="icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+          </span>
+          <span class="field-label-tag">FOLIO</span>
+          <input type="text" id="recordFolioInput" class="clean-input font-tabular" placeholder="0001" value="0001" title="Número de Folio (Secuencial)">
+        </div>
+        <button id="btnHeaderReset" class="btn-chip btn-subtle-chip" title="Iniciar Nueva Hoja en Ceros">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          <span>Nueva Hoja</span>
+        </button>
+      </div>
+
+      <!-- Quick KPI Strip Ejecutivo -->
+      <div class="kpi-strip">
+        <div class="kpi-pill">
+          <span class="kpi-label">TOTAL VENDIDO</span>
+          <span class="kpi-value highlight-emerald font-tabular" id="kpiVendido">$0.00</span>
+        </div>
+        <div class="kpi-pill">
+          <span class="kpi-label">GASTOS & TRANSF.</span>
+          <span class="kpi-value highlight-amber font-tabular" id="kpiGastos">$0.00</span>
+        </div>
+        <div class="kpi-pill">
+          <span class="kpi-label">EFECTIVO ESPERADO</span>
+          <span class="kpi-value highlight-cyan font-tabular" id="kpiEsperado">$0.00</span>
+        </div>
+        <div class="kpi-pill" id="kpiCuadrePill">
+          <span class="kpi-label">ESTADO DE CUADRE</span>
+          <span class="kpi-value highlight-rose font-tabular" id="kpiDiferencia">$0.00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========================================================
+         VISTA ESCRITORIO SAAS: HOJA DE CONTROL Y FLUJO DE CAJA
+         (Visible en pantallas de computadora >= 992px)
+         ======================================================== -->
+    <div id="desktopMasterContainer" class="desktop-master-layout">
+      <!-- BLOQUE 1: TABLA MAESTRA DE CONTROL DE PRODUCTOS (EXCEL VIEW) -->
+      <section class="desk-card desk-master-card">
+        <div class="desk-card-header">
+          <div class="desk-title-group">
+            <div class="desk-badge-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            </div>
+            <div>
+              <h2 class="desk-title">I. Hoja Maestra de Control de Productos</h2>
+              <p class="desk-subtitle">Carga despachada, movimientos en ruta, ventas e inventario físico final</p>
+            </div>
+          </div>
+          <div class="desk-header-controls">
+            <div class="desk-input-pill">
+              <span class="pill-label">Fondo de Cambio:</span>
+              <span class="sym">$</span>
+              <input type="number" id="deskCambioInicial" class="desk-inline-num font-tabular" value="0" step="10" min="0">
+            </div>
+            <div class="desk-input-pill">
+              <span class="pill-label">Otros Precios / Extras:</span>
+              <span class="sym">$</span>
+              <input type="number" id="deskOtrosPrecios" class="desk-inline-num font-tabular" value="0" step="5" min="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="desk-table-wrapper">
+          <table class="desk-excel-table">
+            <thead>
+              <tr>
+                <th class="th-prod">Producto</th>
+                <th class="th-price tac">Precio c/u</th>
+                <th class="th-enviado tac">Carga Inicial (Real)</th>
+                <th class="th-mov tac">Ajustes (+ Entradas / - Salidas)</th>
+                <th class="th-disp tac">Total Disp.</th>
+                <th class="th-vend tac">Vendidos (Pzs)</th>
+                <th class="th-subt tar">Importe Neto ($)</th>
+                <th class="th-esp tac">Esp. Devolver</th>
+                <th class="th-dev tac">Devuelto Físico</th>
+                <th class="th-aud tac">Auditoría Física</th>
+              </tr>
+            </thead>
+            <tbody id="deskMasterTableBody">
+              <!-- Filas de productos renderizadas dinámicamente -->
+            </tbody>
+            <tfoot>
+              <tr class="desk-totals-row">
+                <td colspan="2"><strong>TOTALES DE JORNADA</strong></td>
+                <td class="tac"><strong id="deskTotalEnviadosQty">0 pzs</strong></td>
+                <td class="tac"><span id="deskTotalMovimientos">0 pzs</span></td>
+                <td class="tac"><strong id="deskTotalDisponibles">0 pzs</strong></td>
+                <td class="tac"><strong id="deskTotalVendidosQty">0 pzs</strong></td>
+                <td class="tar"><strong class="highlight-emerald font-tabular" id="deskTotalVendidosNeto">$0.00</strong></td>
+                <td class="tac"><strong id="deskTotalDevueltosEsperado">0 pzs</strong></td>
+                <td class="tac"><strong id="deskTotalDevueltosReal">0 pzs</strong></td>
+                <td class="tac"><span id="deskStockAuditBadge" class="desk-audit-tag ok">✅ Cuadrado (0 pzs)</span></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- BLOQUE 2: 3 COLUMNAS FINANCIERAS (GASTOS, BILLETES Y LIQUIDACIÓN) -->
+      <div class="desk-financial-row">
+        <!-- COLUMNA 1: GASTOS & TRANSFERENCIAS -->
+        <section class="desk-card desk-col-card">
+          <div class="desk-card-header compact">
+            <div class="desk-title-group">
+              <div class="desk-badge-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              </div>
+              <div>
+                <h3 class="desk-title sm">II. Gastos & Deducciones</h3>
+                <p class="desk-subtitle sm">Egresos de caja chica y cobros con transferencia</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="desk-gasto-form">
+            <div class="desk-form-row">
+              <input type="text" id="deskNewGastoConcepto" class="desk-input" placeholder="Concepto (ej. Combustible, Gas)">
+              <div class="desk-sym-input">
+                <span class="sym">$</span>
+                <input type="number" id="deskNewGastoMonto" class="desk-input num font-tabular" placeholder="Monto" step="5" min="0">
+              </div>
+            </div>
+            <div class="desk-form-row">
+              <select id="deskNewGastoTipo" class="desk-select">
+                <option value="efectivo">Gasto Efectivo (Deducción)</option>
+                <option value="transferencia">Transferencia Bancaria</option>
+              </select>
+              <button id="deskBtnAddGasto" class="desk-btn-primary">+ Añadir</button>
+            </div>
+          </div>
+
+          <div id="deskGastosList" class="desk-gastos-scroll">
+            <!-- Lista dinámica de gastos -->
+          </div>
+
+          <div class="desk-summary-box">
+            <div class="desk-sum-line">
+              <span>Gastos en Efectivo:</span>
+              <strong id="deskTotalGastosEfectivo" class="font-tabular">$0.00</strong>
+            </div>
+            <div class="desk-sum-line">
+              <span>Cobrado por Transferencia:</span>
+              <strong id="deskTotalTransferencias" class="font-tabular">$0.00</strong>
+            </div>
+            <div class="desk-sum-line highlight">
+              <span>Total Deducciones:</span>
+              <strong class="highlight-amber font-tabular" id="deskTotalGastosGeneral">$0.00</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- COLUMNA 2: ARQUEO DE BILLETES Y MONEDAS -->
+        <section class="desk-card desk-col-card">
+          <div class="desk-card-header compact">
+            <div class="desk-title-group">
+              <div class="desk-badge-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+              </div>
+              <div>
+                <h3 class="desk-title sm">III. Arqueo de Caja & Valores</h3>
+                <p class="desk-subtitle sm">Conteo físico de efectivo y transferencias</p>
+              </div>
+            </div>
+            <button id="deskBtnClearBilletes" class="desk-btn-text" title="Limpiar conteo a 0">Limpiar</button>
+          </div>
+
+          <!-- MÓDULO DE TRANSFERENCIA DENTRO DE ARQUEO -->
+          <div class="desk-transf-in-arqueo">
+            <div class="transf-in-left">
+              <div class="transf-badge-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              </div>
+              <div>
+                <strong class="transf-title">Cobros por Transferencia</strong>
+                <span class="transf-meta" id="deskTransfCountTag">0 comprobantes</span>
+              </div>
+            </div>
+            <div class="transf-in-right">
+              <strong class="transf-val font-tabular" id="deskArqueoTransfDisplay">$0.00</strong>
+              <button class="btn-quick-transf" onclick="promptAddTransferencia()" title="Añadir comprobante de transferencia">+ Añadir</button>
+            </div>
+          </div>
+
+          <div id="deskBilletesList" class="desk-billetes-compact-grid">
+            <!-- Desglose de billetes renderizado dinámicamente -->
+          </div>
+
+          <div class="desk-total-efectivo-box">
+            <div class="desk-arqueo-summary-rows">
+              <div class="arqueo-sum-line">
+                <span>Efectivo Físico (Caja):</span>
+                <strong class="font-tabular highlight-emerald" id="deskTotalEfectivoFisico">$0.00</strong>
+              </div>
+              <div class="arqueo-sum-line">
+                <span>(+) Transferencias (Banco):</span>
+                <strong class="font-tabular text-cyan" id="deskTotalTransfArqueo">$0.00</strong>
+              </div>
+              <div class="arqueo-sum-line total-highlight">
+                <span>(=) Total Arqueado Global:</span>
+                <strong class="desk-big-total highlight-gold font-tabular" id="deskTotalArqueoGlobal">$0.00</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- COLUMNA 3: LIQUIDACIÓN Y BALANCE MAESTRO -->
+        <section class="desk-card desk-col-card desk-settlement-card">
+          <!-- Banner Hero de Estado -->
+          <div id="deskCuadreHero" class="desk-hero-status">
+            <div class="hero-left">
+              <div class="hero-icon" id="deskHeroIcon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div>
+                <span class="hero-label" id="deskHeroLabel">CONCILIACIÓN DIARIA</span>
+                <h4 class="hero-amount font-tabular" id="deskHeroAmount">$0.00</h4>
+              </div>
+            </div>
+            <span class="hero-badge" id="deskHeroBadge">CONCILIADO</span>
+          </div>
+
+          <div class="desk-liq-table">
+            <div class="desk-liq-row">
+              <span>Total Vendido</span>
+              <strong id="deskLiqTotalVendido">$0.00</strong>
+            </div>
+            <div class="desk-liq-row indent">
+              <span>(-) Gastos en Efectivo</span>
+              <span class="text-amber" id="deskLiqGastosEfectivo">-$0.00</span>
+            </div>
+            <div class="desk-liq-row subtotal">
+              <span>(=) Saldo con Transferencia</span>
+              <strong class="text-cyan" id="deskLiqSaldoConTransf">$0.00</strong>
+            </div>
+            <div class="desk-liq-row indent">
+              <span>(-) Transferencias Bancarias</span>
+              <span class="text-amber" id="deskLiqTransferencias">-$0.00</span>
+            </div>
+            <div class="desk-liq-row subtotal">
+              <span>(=) Saldo sin Cambio</span>
+              <strong id="deskLiqSaldoSinCambio">$0.00</strong>
+            </div>
+            <div class="desk-liq-row indent">
+              <span>(+) Fondo de Cambio Inicial</span>
+              <span class="text-emerald" id="deskLiqCambioInicial">+$0.00</span>
+            </div>
+            <div class="desk-liq-row expected">
+              <strong>(=) Efectivo Esperado en Caja</strong>
+              <strong class="text-highlight" id="deskLiqEsperadoEnCaja">$0.00</strong>
+            </div>
+            <div class="desk-liq-row">
+              <span>Efectivo Físico Contado</span>
+              <strong id="deskLiqEfectivoContado">$0.00</strong>
+            </div>
+            <div class="desk-liq-row diff" id="deskLiqDiffRow">
+              <strong>Diferencia (Falta / Sobra)</strong>
+              <strong id="deskLiqFaltaSobra">$0.00</strong>
+            </div>
+            <div class="desk-liq-row grand-total">
+              <span>SALDO FINAL A ENTREGAR</span>
+              <strong class="desk-mega-final highlight-orange" id="deskLiqSaldoFinal">$0.00</strong>
+            </div>
+          </div>
+
+          <div class="desk-notes-area">
+            <textarea id="deskNotas" rows="2" class="desk-textarea" placeholder="Notas / Observaciones del corte..."></textarea>
+          </div>
+
+          <div class="desk-action-grid">
+            <button id="deskBtnSaveRecord" class="desk-btn-action btn-save">
+              💾 Guardar Corte
+            </button>
+            <button id="deskBtnShareWhatsApp" class="desk-btn-action btn-wa" title="Generar Ticket PDF y Compartir por WhatsApp">
+              📲 Enviar Ticket PDF
+            </button>
+            <button id="deskBtnPrintTicket" class="desk-btn-action btn-print" title="Ver Ticket y Descargar PDF">
+              🧾 Ticket / PDF
+            </button>
+            <button id="deskBtnResetAll" class="desk-btn-action btn-reset" title="Limpiar y nuevo corte">
+              🔄 Nuevo
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Main Content Area: Views (Vista Móvil / Asistente Pestañas) -->
+    <main class="views-wrapper" id="mobileViewsWrapper">
+
+      <!-- ================= 1. PESTAÑA: ENVIADO Y AJUSTES ================= -->
+      <section id="view-enviado" class="view-panel active">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div>
+              <h2 class="section-title">📦 Paquetes Enviados (Carga Inicial)</h2>
+              <p class="section-desc">Productos despachados al inicio de ruta</p>
+            </div>
+            <button id="btnAddEnviadoRow" class="btn-chip btn-outline-chip">+ Agregar</button>
+          </div>
+
+          <!-- Fondo de Cambio Inicial -->
+          <div class="subcard cambio-card">
+            <div class="cambio-header">
+              <span class="cambio-icon">💵</span>
+              <div class="cambio-info">
+                <strong>Fondo de Cambio Inicial (Cambio)</strong>
+                <small>Efectivo entregado para dar cambio</small>
+              </div>
+            </div>
+            <div class="cambio-input-wrap">
+              <span class="currency-prefix">$</span>
+              <input type="number" id="inputCambioInicial" class="styled-input" placeholder="0.00" value="0" step="10" min="0">
+            </div>
+          </div>
+
+          <!-- Cabecera de Tabla para Pantallas Grandes -->
+          <div class="desktop-table-header">
+            <span>Producto Despachado</span>
+            <span class="tac">Precio c/u</span>
+            <span class="tac">Despachado (Real)</span>
+            <span class="tar">Subtotal Neto</span>
+          </div>
+
+          <!-- Listado de Paquetes Enviados -->
+          <div id="enviadosList" class="items-list">
+            <!-- Renderizado dinámico -->
+          </div>
+
+          <div class="total-summary-card">
+            <div class="summary-line">
+              <span>Total Paquetes Reales:</span>
+              <strong id="totalEnviadosQty">0 pzs</strong>
+            </div>
+            <div class="summary-line highlight">
+              <span>Total Valor Enviado:</span>
+              <strong id="totalEnviadosNeto">$0.00</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Movimientos de Stock (Salidas / Entradas) -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <div>
+              <h2 class="section-title">🔁 Salidas / Entradas (Ajustes de Ruta)</h2>
+              <p class="section-desc">Reabastecimiento (+ Entradas) o mermas/traspasos (- Salidas)</p>
+            </div>
+            <button id="btnToggleMovimientos" class="btn-chip btn-outline-chip">Mostrar / Ocultar</button>
+          </div>
+
+          <div id="movimientosContainer" class="movimientos-container">
+            <div id="movimientosList" class="items-list">
+              <!-- Renderizado dinámico de productos para ajustes -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. PESTAÑA: VENTAS ================= -->
+      <section id="view-vendido" class="view-panel">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div>
+              <h2 class="section-title">💰 Paquetes Vendidos</h2>
+              <p class="section-desc">Registra las piezas cobradas durante la jornada</p>
+            </div>
+            <div class="badge-accent" id="badgeTotalVendidosCount">0 pzs</div>
+          </div>
+
+          <!-- Cabecera de Tabla para Pantallas Grandes -->
+          <div class="desktop-table-header">
+            <span>Producto Vendido</span>
+            <span class="tac">Precio c/u</span>
+            <span class="tac">Cantidad Vendida</span>
+            <span class="tar">Importe Neto</span>
+          </div>
+
+          <div id="vendidosList" class="items-list">
+            <!-- Renderizado dinámico -->
+          </div>
+
+          <!-- Otros Precios / Extras -->
+          <div class="subcard extras-card">
+            <div class="extras-info">
+              <span class="extras-icon">🏷️</span>
+              <div>
+                <strong>Otros Precios / Ventas Varias</strong>
+                <small>Extras, salsas, bebidas u otros importes</small>
+              </div>
+            </div>
+            <div class="extras-input-wrap">
+              <span class="currency-prefix">$</span>
+              <input type="number" id="inputOtrosPrecios" class="styled-input" placeholder="0.00" value="0" step="5" min="0">
+            </div>
+          </div>
+
+          <div class="total-summary-card">
+            <div class="summary-line">
+              <span>Total Paquetes Vendidos:</span>
+              <strong id="totalVendidosQty">0 pzs</strong>
+            </div>
+            <div class="summary-line highlight">
+              <span>Total Importe Vendido:</span>
+              <strong id="totalVendidosNeto">$0.00</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. PESTAÑA: DEVOLUCIONES ================= -->
+      <section id="view-devoluciones" class="view-panel">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div>
+              <h2 class="section-title">🔄 Paquetes Devueltos (Final)</h2>
+              <p class="section-desc">Auditoría de producto físico devuelto vs esperado</p>
+            </div>
+            <div class="badge-status" id="badgeStockAuditStatus">Verificando...</div>
+          </div>
+
+          <div class="stock-formula-banner">
+            <span class="banner-icon">ℹ️</span>
+            <span>Esperado = Enviado Real + Entradas - Salidas - Vendido</span>
+          </div>
+
+          <!-- Cabecera de Tabla para Pantallas Grandes -->
+          <div class="desktop-table-header">
+            <span>Producto</span>
+            <span class="tac">Esperado</span>
+            <span class="tac">Devuelto Físico</span>
+            <span class="tar">Auditoría / Estado</span>
+          </div>
+
+          <div id="devolucionesList" class="items-list">
+            <!-- Renderizado dinámico -->
+          </div>
+
+          <div class="total-summary-card">
+            <div class="summary-line">
+              <span>Total Esperado a Devolver:</span>
+              <strong id="totalDevueltosEsperado">0 pzs</strong>
+            </div>
+            <div class="summary-line">
+              <span>Total Devueltos Reales:</span>
+              <strong id="totalDevueltosQty">0 pzs</strong>
+            </div>
+            <div class="summary-line highlight">
+              <span>Diferencia Total en Piezas:</span>
+              <strong id="totalDevueltosDif">0 pzs (OK)</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. PESTAÑA: GASTOS ================= -->
+      <section id="view-gastos" class="view-panel">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div>
+              <h2 class="section-title">🧾 Gastos & Pagos Electrónicos</h2>
+              <p class="section-desc">Gastos en efectivo y ventas cobradas por transferencia</p>
+            </div>
+          </div>
+
+          <!-- Formulario para agregar nuevo gasto -->
+          <div class="add-gasto-form">
+            <div class="form-row">
+              <input type="text" id="newGastoConcepto" class="styled-input" placeholder="Concepto (ej: Tortillas, Gas)">
+              <div class="input-with-symbol">
+                <span class="sym">$</span>
+                <input type="number" id="newGastoMonto" class="styled-input" placeholder="Monto" step="5" min="0">
+              </div>
+            </div>
+            <div class="form-row">
+              <select id="newGastoTipo" class="styled-select">
+                <option value="efectivo">💵 Gasto en Efectivo (Cajón)</option>
+                <option value="transferencia">💳 Cobro por Transferencia (Banco)</option>
+              </select>
+              <button id="btnAgregarGasto" class="btn-primary">+ Añadir</button>
+            </div>
+          </div>
+
+          <!-- Lista de gastos -->
+          <div id="gastosList" class="items-list">
+            <!-- Renderizado dinámico -->
+          </div>
+
+          <!-- Resumen de Gastos -->
+          <div class="total-summary-card">
+            <div class="summary-line">
+              <span>Gastos en Efectivo (Deducibles):</span>
+              <strong id="totalGastosEfectivoText">$0.00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Cobrado por Transferencia:</span>
+              <strong id="totalTransferenciasText">$0.00</strong>
+            </div>
+            <div class="summary-line highlight">
+              <span>Total Gastos y Deducciones:</span>
+              <strong id="totalGastosGeneralText">$0.00</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. PESTAÑA: ARQUEO DE BILLETES ================= -->
+      <section id="view-billetes" class="view-panel">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div>
+              <h2 class="section-title">💵 Arqueo de Caja & Valores</h2>
+              <p class="section-desc">Conteo de efectivo y comprobantes de transferencia</p>
+            </div>
+            <button id="btnClearBilletes" class="btn-chip btn-outline-chip">Limpiar a 0</button>
+          </div>
+
+          <!-- Módulo Transferencia en Móvil -->
+          <div class="desk-transf-in-arqueo" style="margin-bottom:12px;">
+            <div class="transf-in-left">
+              <span style="font-size:1.2rem;">💳</span>
+              <div>
+                <strong>Cobros por Transferencia</strong>
+                <span class="transf-meta" id="mobTransfCountTag">0 comprobantes</span>
+              </div>
+            </div>
+            <div class="transf-in-right">
+              <strong class="transf-val font-tabular" id="mobArqueoTransfDisplay">$0.00</strong>
+              <button class="btn-quick-transf" onclick="promptAddTransferencia()">+ Añadir</button>
+            </div>
+          </div>
+
+          <div class="billetes-grid" id="billetesGrid">
+            <!-- Billetes y Monedas generados dinámicamente -->
+          </div>
+
+          <div class="total-summary-card total-efectivo-card">
+            <div class="summary-line">
+              <span>Efectivo Físico (Cajón):</span>
+              <strong class="mega-currency font-tabular" id="totalEfectivoFisicoText">$0.00</strong>
+            </div>
+            <div class="summary-line">
+              <span>(+) Transferencias Bancarias:</span>
+              <strong class="font-tabular text-cyan" id="mobTotalTransfArqueo">$0.00</strong>
+            </div>
+            <div class="summary-line highlight">
+              <span>(=) Total Arqueado Global:</span>
+              <strong class="font-tabular highlight-gold" id="mobTotalArqueoGlobal">$0.00</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. PESTAÑA: LIQUIDACIÓN Y BALANCE FINAL ================= -->
+      <section id="view-resumen" class="view-panel">
+        <!-- Tarjeta de Estado del Cuadre -->
+        <div class="cuadre-status-hero" id="cuadreHero">
+          <div class="hero-status-icon" id="heroStatusIcon">⚖️</div>
+          <div class="hero-status-content">
+            <span class="hero-tag" id="heroStatusTag">ESTADO DE CAJA</span>
+            <h3 class="hero-diff" id="heroDiffAmount">-$2,810.00</h3>
+            <p class="hero-message" id="heroStatusMsg">Calculando balance de la jornada...</p>
+          </div>
+        </div>
+
+        <!-- Tabla Maestra de Liquidación (Fórmulas exactas del Excel) -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h2 class="section-title">📊 Resumen Financiero de Cierre</h2>
+            <span class="badge-pill">Fórmulas Exactas</span>
+          </div>
+
+          <div class="liquidation-table">
+            <div class="liq-row">
+              <div class="liq-concept">
+                <span class="dot emerald"></span>
+                <span>Total Vendido</span>
+              </div>
+              <strong class="liq-val" id="liqTotalVendido">$0.00</strong>
+            </div>
+
+            <div class="liq-row indent">
+              <div class="liq-concept">
+                <span class="operator">(-)</span>
+                <span>Gastos en Efectivo</span>
+              </div>
+              <span class="liq-val text-amber" id="liqGastosEfectivo">-$0.00</span>
+            </div>
+
+            <div class="liq-row subtotal-row">
+              <div class="liq-concept">
+                <span>(=) Saldo con Transferencia</span>
+              </div>
+              <strong class="liq-val text-cyan" id="liqSaldoConTransf">$0.00</strong>
+            </div>
+
+            <div class="liq-row indent">
+              <div class="liq-concept">
+                <span class="operator">(-)</span>
+                <span>Transferencias Bancarias</span>
+              </div>
+              <span class="liq-val text-amber" id="liqTransferencias">-$0.00</span>
+            </div>
+
+            <div class="liq-row subtotal-row">
+              <div class="liq-concept">
+                <span>(=) Saldo sin Cambio</span>
+              </div>
+              <strong class="liq-val" id="liqSaldoSinCambio">$0.00</strong>
+            </div>
+
+            <div class="liq-row indent">
+              <div class="liq-concept">
+                <span class="operator">(+)</span>
+                <span>Fondo de Cambio Inicial</span>
+              </div>
+              <span class="liq-val text-emerald" id="liqCambioInicial">+$0.00</span>
+            </div>
+
+            <div class="liq-row expected-row">
+              <div class="liq-concept">
+                <strong>(=) Efectivo Esperado en Cajón</strong>
+              </div>
+              <strong class="liq-val text-highlight" id="liqEsperadoEnCaja">$0.00</strong>
+            </div>
+
+            <div class="liq-row">
+              <div class="liq-concept">
+                <span>Total Efectivo Físico Contado</span>
+              </div>
+              <strong class="liq-val" id="liqEfectivoContado">$0.00</strong>
+            </div>
+
+            <div class="liq-row diff-row" id="liqDiffRow">
+              <div class="liq-concept">
+                <strong>Diferencia (Falta / Sobra)</strong>
+              </div>
+              <strong class="liq-val" id="liqFaltaSobra">$0.00</strong>
+            </div>
+
+            <div class="liq-row final-row">
+              <div class="liq-concept">
+                <span>SALDO FINAL A ENTREGAR</span>
+              </div>
+              <strong class="liq-val mega-final" id="liqSaldoFinal">$0.00</strong>
+            </div>
+          </div>
+
+          <!-- Observaciones / Notas -->
+          <div class="notes-area">
+            <label for="inputRecordNotas">Notas / Observaciones del Cierre:</label>
+            <textarea id="inputRecordNotas" rows="2" class="styled-textarea" placeholder="Ej: Se entregaron 2 paquetes de cortesía..."></textarea>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="action-buttons-grid">
+            <button id="btnSaveRecord" class="btn-hero btn-emerald">
+              💾 Guardar Corte
+            </button>
+            <button id="btnShareWhatsApp" class="btn-hero btn-whatsapp" title="Generar Ticket PDF y Compartir por WhatsApp">
+              📲 Enviar Ticket PDF
+            </button>
+            <button id="btnPrintTicket" class="btn-hero btn-slate" title="Ver Ticket y Descargar PDF">
+              🧾 Ticket / PDF
+            </button>
+            <button id="btnResetAll" class="btn-hero btn-ghost">
+              🔄 Limpiar / Nuevo
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar for Mobile -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" data-tab="view-enviado">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">Carga</span>
+      </button>
+      <button class="nav-tab" data-tab="view-vendido">
+        <span class="nav-icon">💰</span>
+        <span class="nav-label">Ventas</span>
+      </button>
+      <button class="nav-tab" data-tab="view-devoluciones">
+        <span class="nav-icon">🔄</span>
+        <span class="nav-label">Devolución</span>
+      </button>
+      <button class="nav-tab" data-tab="view-gastos">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-label">Gastos</span>
+      </button>
+      <button class="nav-tab" data-tab="view-billetes">
+        <span class="nav-icon">💵</span>
+        <span class="nav-label">Billetes</span>
+      </button>
+      <button class="nav-tab" data-tab="view-resumen">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Cuadre</span>
+        <span class="nav-indicator" id="navCuadreIndicator"></span>
+      </button>
+    </nav>
+
+    <!-- Modal: Historial de Cortes -->
+    <div id="modalHistory" class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 class="modal-title">📂 Historial de Cortes Guardados</h3>
+          <button id="btnCloseHistory" class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body" id="historyListContainer">
+          <p class="empty-state">Cargando historial...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Ticket Imprimible / Resumen -->
+    <div id="modalTicket" class="modal-backdrop">
+      <div class="modal-dialog ticket-dialog">
+        <div class="modal-header no-print">
+          <h3 class="modal-title">🧾 Ticket Digital de Liquidación</h3>
+          <button id="btnCloseTicket" class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body ticket-body" id="ticketContent">
+          <!-- Contenido del ticket -->
+        </div>
+        <div class="modal-footer no-print ticket-footer-actions">
+          <button id="btnModalSharePdf" class="btn-ticket-modal btn-wa">
+            📲 Enviar a WhatsApp
+          </button>
+          <button id="btnModalDownloadPdf" class="btn-ticket-modal btn-download">
+            📥 Descargar PDF
+          </button>
+          <button id="btnPrintNow" class="btn-ticket-modal btn-print">
+            🖨️ Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="/html2pdf.bundle.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
