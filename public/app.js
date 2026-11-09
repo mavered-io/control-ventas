@@ -20,50 +20,60 @@ const DENOMINACIONES = [
   { key: 'm05',  label: '$0.50',value: 0.5, type: 'coin' },
 ];
 
-// Función para obtener fecha de mañana
-function getTomorrowDateStr() {
+// Función para obtener la fecha de hoy en hora local (YYYY-MM-DD)
+function getTodayDateStr() {
   const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
-// Folio inicial secuencial (inicia en 0001)
-const initialFolio = localStorage.getItem('cv_folio_current') || '0001';
-const initialDate = getTomorrowDateStr();
+// Folio inicial secuencial (configurado para iniciar en folio 0013)
+function getInitialFolio() {
+  const saved = localStorage.getItem('cv_folio_current');
+  if (saved) {
+    const num = parseInt(saved, 10);
+    if (!isNaN(num) && num >= 13) {
+      return String(num).padStart(4, '0');
+    }
+  }
+  localStorage.setItem('cv_folio_current', '0013');
+  return '0013';
+}
 
-// Estado Inicial de la Aplicación (Inicia siempre en CEROS con folio 0001)
+const initialFolio = getInitialFolio();
+const initialDate = getTodayDateStr();
+
+// Estado Inicial de la Aplicación (Responsables: Isabel, Diego, Julio)
 let appState = {
   currentRecordId: null,
   folio: initialFolio,
   fecha: initialDate,
-  vendedor: 'Ruta 1',
+  vendedor: 'Isabel',
   rutaOUnidad: 'Unidad de Reparto',
   cambioInicial: 0,
   enviados: [
-    { id: '1', producto: 'Campechano', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
-    { id: '2', producto: 'Pollo', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
-    { id: '3', producto: 'Costilla', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
+    { id: '1', producto: 'Campechano', cantidad: 0, real: 0, precioUnitario: 170, neto: 0 },
+    { id: '3', producto: 'Costilla', cantidad: 0, real: 0, precioUnitario: 180, neto: 0 },
     { id: '4', producto: 'Familiar', cantidad: 0, real: 0, precioUnitario: 270, neto: 0 },
     { id: '5', producto: 'Chamorro', cantidad: 0, real: 0, precioUnitario: 270, neto: 0 },
   ],
   movimientos: [
     { id: 'm1', producto: 'Campechano', entradas: 0, salidas: 0 },
-    { id: 'm2', producto: 'Pollo', entradas: 0, salidas: 0 },
     { id: 'm3', producto: 'Costilla', entradas: 0, salidas: 0 },
     { id: 'm4', producto: 'Familiar', entradas: 0, salidas: 0 },
     { id: 'm5', producto: 'Chamorro', entradas: 0, salidas: 0 },
   ],
   vendidos: [
-    { id: 'v1', producto: 'Campechano', cantidad: 0, precioUnitario: 160, neto: 0 },
-    { id: 'v2', producto: 'Pollo', cantidad: 0, precioUnitario: 160, neto: 0 },
-    { id: 'v3', producto: 'Costilla', cantidad: 0, precioUnitario: 160, neto: 0 },
+    { id: 'v1', producto: 'Campechano', cantidad: 0, precioUnitario: 170, neto: 0 },
+    { id: 'v3', producto: 'Costilla', cantidad: 0, precioUnitario: 180, neto: 0 },
     { id: 'v4', producto: 'Familiar', cantidad: 0, precioUnitario: 270, neto: 0 },
     { id: 'v5', producto: 'Chamorro', cantidad: 0, precioUnitario: 270, neto: 0 },
   ],
   otrosPreciosVenta: 0,
   devoluciones: [
     { id: 'd1', producto: 'Campechano', devueltoReal: 0, esperado: 0, diferencia: 0 },
-    { id: 'd2', producto: 'Pollo', devueltoReal: 0, esperado: 0, diferencia: 0 },
     { id: 'd3', producto: 'Costilla', devueltoReal: 0, esperado: 0, diferencia: 0 },
     { id: 'd4', producto: 'Familiar', devueltoReal: 0, esperado: 0, diferencia: 0 },
     { id: 'd5', producto: 'Chamorro', devueltoReal: 0, esperado: 0, diferencia: 0 },
@@ -97,30 +107,104 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===================================================
-// NAVEGACIÓN ENTRE PESTAÑAS (Bottom Nav)
+// NAVEGACIÓN PASO A PASO (WIZARD STEPPER)
 // ===================================================
+const STEP_CONFIG = [
+  { step: 1, tabId: 'view-enviado', label: 'Carga Inicial de Productos' },
+  { step: 2, tabId: 'view-vendido', label: 'Ventas del Día' },
+  { step: 3, tabId: 'view-devoluciones', label: 'Devolución Física' },
+  { step: 4, tabId: 'view-gastos', label: 'Gastos & Deducciones' },
+  { step: 5, tabId: 'view-billetes', label: 'Arqueo de Billetes' },
+  { step: 6, tabId: 'view-resumen', label: 'Cuadre Final & Cierre' },
+];
+
+let currentWizardStep = 1;
+
+function goToStep(stepNum) {
+  if (stepNum < 1 || stepNum > 6) return;
+  currentWizardStep = stepNum;
+  const cfg = STEP_CONFIG[stepNum - 1];
+
+  // 1. Activar panel correspondiente
+  document.querySelectorAll('.view-panel').forEach((panel) => {
+    panel.classList.remove('active');
+  });
+  const targetPanel = document.getElementById(cfg.tabId);
+  if (targetPanel) {
+    targetPanel.classList.add('active');
+  }
+
+  // 2. Sincronizar Bottom Nav
+  document.querySelectorAll('.nav-tab').forEach((tab) => {
+    tab.classList.toggle('active', tab.getAttribute('data-tab') === cfg.tabId);
+  });
+
+  // 3. Sincronizar Stepper Nodes
+  const nodes = document.querySelectorAll('.stepper-node');
+  nodes.forEach((node) => {
+    const s = parseInt(node.getAttribute('data-step'), 10);
+    node.classList.remove('active', 'completed');
+    if (s === stepNum) {
+      node.classList.add('active');
+    } else if (s < stepNum) {
+      node.classList.add('completed');
+    }
+  });
+
+  // 4. Barra de Progreso
+  const fill = document.getElementById('stepperFillBar');
+  if (fill) {
+    const pct = ((stepNum - 0.5) / 6) * 100;
+    fill.style.width = `${pct}%`;
+  }
+
+  // 5. Badge con texto del paso actual
+  const badgeText = document.getElementById('stepperBadgeText');
+  if (badgeText) {
+    badgeText.textContent = `Paso ${stepNum} de 6: ${cfg.label}`;
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (navigator.vibrate) navigator.vibrate(10);
+}
+
 function setupNavigation() {
-  const tabs = document.querySelectorAll('.nav-tab');
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      const targetId = tab.getAttribute('data-tab');
-      document.querySelectorAll('.view-panel').forEach((panel) => {
-        panel.classList.remove('active');
-      });
-
-      const targetPanel = document.getElementById(targetId);
-      if (targetPanel) {
-        targetPanel.classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      // Haptic feedback si está disponible
-      if (navigator.vibrate) navigator.vibrate(10);
+  // Clics en los nodos del Stepper superior
+  document.querySelectorAll('.stepper-node').forEach((node) => {
+    node.addEventListener('click', () => {
+      const step = parseInt(node.getAttribute('data-step'), 10);
+      if (!isNaN(step)) goToStep(step);
     });
   });
+
+  // Clics en botones Siguiente / Anterior de cada paso
+  document.querySelectorAll('.btn-step-next').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const nextStep = parseInt(btn.getAttribute('data-next'), 10);
+      if (!isNaN(nextStep)) goToStep(nextStep);
+    });
+  });
+
+  document.querySelectorAll('.btn-step-prev').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const prevStep = parseInt(btn.getAttribute('data-prev'), 10);
+      if (!isNaN(prevStep)) goToStep(prevStep);
+    });
+  });
+
+  // Clics en pestañas inferiores
+  document.querySelectorAll('.nav-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const tabId = tab.getAttribute('data-tab');
+      const found = STEP_CONFIG.find((c) => c.tabId === tabId);
+      if (found) {
+        goToStep(found.step);
+      }
+    });
+  });
+
+  // Arrancar en el Paso 1
+  goToStep(1);
 }
 
 // ===================================================
@@ -135,10 +219,14 @@ function setupEventListeners() {
   });
 
   const recordSellerInput = document.getElementById('recordSeller');
-  recordSellerInput.value = appState.vendedor;
-  recordSellerInput.addEventListener('input', (e) => {
-    appState.vendedor = e.target.value;
-  });
+  if (recordSellerInput) {
+    recordSellerInput.value = appState.vendedor || 'Isabel';
+    const onSellerChange = (e) => {
+      appState.vendedor = e.target.value;
+    };
+    recordSellerInput.addEventListener('change', onSellerChange);
+    recordSellerInput.addEventListener('input', onSellerChange);
+  }
 
   // Cambio Inicial
   const inputCambio = document.getElementById('inputCambioInicial');
@@ -171,7 +259,7 @@ function setupEventListeners() {
   if (recordFolioInput) {
     recordFolioInput.value = appState.folio;
     recordFolioInput.addEventListener('input', (e) => {
-      appState.folio = e.target.value.trim() || '0001';
+      appState.folio = e.target.value.trim() || '0013';
       localStorage.setItem('cv_folio_current', appState.folio);
       const hFolio = document.getElementById('headerFolio');
       if (hFolio) hFolio.textContent = `Folio: ${appState.folio}`;
@@ -198,10 +286,19 @@ function setupEventListeners() {
 
   // Limpiar Billetes
   document.getElementById('btnClearBilletes').addEventListener('click', () => {
-    Object.keys(appState.billetes).forEach((k) => (appState.billetes[k] = 0));
-    renderBilletes();
-    calculateAndRender();
-    showToast('Conteo de billetes reiniciado a $0');
+    showModernConfirm({
+      title: '¿Reiniciar Billetes?',
+      message: 'Se restablecerán a cero todas las cantidades de billetes y monedas contadas.',
+      type: 'warning',
+      confirmText: 'Sí, Reiniciar a $0',
+      cancelText: 'Cancelar',
+      onConfirm: () => {
+        Object.keys(appState.billetes).forEach((k) => (appState.billetes[k] = 0));
+        renderBilletes();
+        calculateAndRender();
+        showToast('Conteo de billetes reiniciado a $0');
+      },
+    });
   });
 
   // Guardar Corte (Botón en tarjeta y Botón en cabecera desktop)
@@ -230,23 +327,33 @@ function setupEventListeners() {
     document.body.classList.toggle('light-theme');
   });
 
-  // Alternar Modo Escritorio (Hoja Maestra) vs Modo Móvil (Pestañas)
+  // Alternar Modo Paso a Paso (Wizard) vs Hoja Maestra Completa (Excel)
   const btnToggleDashboard = document.getElementById('btnToggleDashboard');
-  const savedMode = localStorage.getItem('cv_view_mode') || (window.innerWidth >= 992 ? 'desktop' : 'tabs');
-  if (savedMode === 'tabs') {
-    document.body.classList.add('tabs-view');
-    if (btnToggleDashboard) btnToggleDashboard.textContent = '🖥️ Vista Escritorio';
-  } else {
-    document.body.classList.remove('tabs-view');
-    if (btnToggleDashboard) btnToggleDashboard.textContent = '📱 Vista Pestañas';
+  const btnToggleText = document.getElementById('btnToggleDashboardText');
+  const savedMode = localStorage.getItem('cv_view_mode') || 'wizard';
+
+  function applyViewMode(mode) {
+    if (mode === 'excel') {
+      document.body.classList.add('excel-mode');
+      document.body.classList.remove('tabs-view');
+      if (btnToggleText) btnToggleText.textContent = '✨ Modo Paso a Paso';
+      localStorage.setItem('cv_view_mode', 'excel');
+    } else {
+      document.body.classList.remove('excel-mode');
+      document.body.classList.add('tabs-view');
+      if (btnToggleText) btnToggleText.textContent = '📑 Modo Tabla Completa';
+      localStorage.setItem('cv_view_mode', 'wizard');
+    }
   }
+
+  // Aplicar modo inicial
+  applyViewMode(savedMode);
 
   if (btnToggleDashboard) {
     btnToggleDashboard.addEventListener('click', () => {
-      const isTabs = document.body.classList.toggle('tabs-view');
-      btnToggleDashboard.textContent = isTabs ? '🖥️ Vista Escritorio' : '📱 Vista Pestañas';
-      localStorage.setItem('cv_view_mode', isTabs ? 'tabs' : 'desktop');
-      showToast(isTabs ? 'Modo Móvil: Vista por pestañas' : 'Modo Escritorio: Hoja Maestra de Cálculo');
+      const isExcel = document.body.classList.contains('excel-mode');
+      applyViewMode(isExcel ? 'wizard' : 'excel');
+      showToast(!isExcel ? 'Modo Tabla Completa activado' : '✨ Modo Paso a Paso activado');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
@@ -326,6 +433,8 @@ function renderAll() {
   if (rFolio && document.activeElement !== rFolio) rFolio.value = appState.folio;
   const rDate = document.getElementById('recordDate');
   if (rDate && document.activeElement !== rDate) rDate.value = appState.fecha;
+  const rSeller = document.getElementById('recordSeller');
+  if (rSeller && document.activeElement !== rSeller) rSeller.value = appState.vendedor || 'Isabel';
   renderEnviados();
   renderMovimientos();
   renderVendidos();
@@ -1135,15 +1244,15 @@ function updateUIDisplays(res) {
     heroIcon.textContent = '🚨';
     heroTag.textContent = 'FALTANTE DE EFECTIVO EN CAJA';
     heroMsg.textContent = `Faltan ${formatMoney(Math.abs(res.faltaSobra))} respecto al efectivo esperado.`;
-    navIndicator.className = 'nav-indicator';
-    liqDiffRow.className = 'liq-row diff-row';
+    navIndicator.className = 'nav-indicator falta';
+    liqDiffRow.className = 'liq-row diff-row falta';
   } else {
     heroCard.className = 'cuadre-status-hero sobra';
     heroIcon.textContent = '💰';
     heroTag.textContent = 'SOBRANTE DE EFECTIVO';
     heroMsg.textContent = `Sobran ${formatMoney(res.faltaSobra)} en el conteo de billetes.`;
-    navIndicator.className = 'nav-indicator';
-    liqDiffRow.className = 'liq-row diff-row';
+    navIndicator.className = 'nav-indicator sobra';
+    liqDiffRow.className = 'liq-row diff-row sobra';
   }
 
   // ===================================================
@@ -1266,7 +1375,13 @@ function updateUIDisplays(res) {
 
   const dDiffRow = document.getElementById('deskLiqDiffRow');
   if (dDiffRow) {
-    dDiffRow.className = `desk-liq-row diff ${res.estaCuadrado ? 'cuadrado' : ''}`;
+    if (res.estaCuadrado) {
+      dDiffRow.className = 'desk-liq-row diff cuadrado';
+    } else if (res.faltaSobra < 0) {
+      dDiffRow.className = 'desk-liq-row diff falta';
+    } else {
+      dDiffRow.className = 'desk-liq-row diff sobra';
+    }
   }
 
   // 6. Hero Status en Escritorio
@@ -1285,16 +1400,16 @@ function updateUIDisplays(res) {
       dHeroBadge.className = 'hero-badge ok';
       dHeroBadge.textContent = 'CUADRADO ✓';
     } else if (res.faltaSobra < 0) {
-      dHero.className = 'desk-hero-status descuadrado';
+      dHero.className = 'desk-hero-status falta';
       dHeroIcon.textContent = '🚨';
       dHeroLabel.textContent = 'FALTANTE DE EFECTIVO';
       dHeroBadge.className = 'hero-badge error';
       dHeroBadge.textContent = 'FALTA DINERO';
     } else {
-      dHero.className = 'desk-hero-status descuadrado';
+      dHero.className = 'desk-hero-status sobra';
       dHeroIcon.textContent = '💰';
       dHeroLabel.textContent = 'SOBRANTE DE EFECTIVO';
-      dHeroBadge.className = 'hero-badge error';
+      dHeroBadge.className = 'hero-badge warning';
       dHeroBadge.textContent = 'SOBRA DINERO';
     }
   }
@@ -1383,7 +1498,7 @@ async function loadExampleData() {
 function addCustomProductRow() {
   const nombre = prompt('Nombre del nuevo producto (ej: Especial, Costilla BBQ):');
   if (!nombre) return;
-  const precio = parseFloat(prompt('Precio Unitario ($):', '160')) || 0;
+  const precio = parseFloat(prompt('Precio Unitario ($):', '170')) || 0;
 
   const id = `prod_${Date.now()}`;
   appState.enviados.push({
@@ -1425,9 +1540,45 @@ async function saveRecordToBackend() {
 
     showToast(`✓ Corte guardado exitosamente: ${saved.folio}`);
     if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+
+    localStorage.setItem('cv_folio_current', saved.folio);
+    const rFolio = document.getElementById('recordFolioInput');
+    if (rFolio) rFolio.value = saved.folio;
+
+    const formatMoney = (n) => `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const r = appState.resumen || {};
+    const difTagClass = r.estaCuadrado ? 'text-emerald' : r.faltaSobra < 0 ? 'text-rose' : 'text-amber';
+    const difLabel = r.estaCuadrado ? 'Cuadrado ✓' : r.faltaSobra < 0 ? `Falta ${formatMoney(Math.abs(r.faltaSobra))}` : `Sobra ${formatMoney(r.faltaSobra)}`;
+
+    showModernAlert({
+      type: 'success',
+      title: '¡Corte Guardado con Éxito!',
+      html: `
+        <div class="alert-summary-card">
+          <div class="alert-folio-chip">
+            <span class="chip-label">FOLIO REGISTRADO</span>
+            <span class="chip-num">#${saved.folio}</span>
+          </div>
+          <div class="alert-data-list">
+            <div class="data-row"><span>👤 Responsable:</span> <strong>${appState.vendedor}</strong></div>
+            <div class="data-row"><span>📅 Fecha del Corte:</span> <strong>${saved.fecha || appState.fecha}</strong></div>
+            <div class="data-row"><span>📦 Total Vendido:</span> <strong class="text-emerald">${formatMoney(r.totalVendidoFinal)}</strong></div>
+            <div class="data-row"><span>💵 Efectivo en Caja:</span> <strong>${formatMoney(r.totalEfectivoFisico)}</strong></div>
+            <div class="data-row"><span>⚖️ Balance de Caja:</span> <strong class="${difTagClass}">${difLabel}</strong></div>
+          </div>
+        </div>
+      `,
+      confirmText: '¡Excelente, Entendido!',
+    });
   } catch (err) {
     console.error(err);
     showToast('Error al guardar el corte en el servidor');
+    showModernAlert({
+      type: 'error',
+      title: 'Error al Guardar',
+      message: 'Ocurrió un error al intentar guardar el corte en el servidor. Revisa tu conexión de red e inténtalo de nuevo.',
+      confirmText: 'Reintentar / Cerrar',
+    });
   }
 }
 
@@ -1437,8 +1588,10 @@ async function saveRecordToBackend() {
 
 // Generador del HTML del Ticket Clásico / Térmico Real (Simple, sobrio y sin adornos)
 function buildTicketHTML(state) {
-  const r = state.resumen;
-  if (!r) return '';
+  if (!state.resumen) {
+    calculateAndRender();
+  }
+  const r = state.resumen || {};
 
   const formatMoney = (n) => `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -1967,48 +2120,67 @@ function closeHistoryModal() {
 }
 
 // Limpiar todo y nuevo corte (Reinicia todo en CEROS con folio formal de 4 dígitos)
-function resetAllForm() {
-  if (!confirm('¿Deseas iniciar una nueva hoja de ventas en blanco?')) return;
-
-  let nextFolio = '0001';
+function getNextFolioValue() {
   const curNum = parseInt(appState.folio, 10);
-  if (!isNaN(curNum) && curNum >= 1) {
-    nextFolio = String(curNum + 1).padStart(4, '0');
+  if (!isNaN(curNum) && curNum >= 13) {
+    return String(curNum + 1).padStart(4, '0');
   }
+  return '0013';
+}
+
+function resetAllForm() {
+  const nextFolio = getNextFolioValue();
+  showModernConfirm({
+    title: '¿Iniciar Nueva Hoja?',
+    html: `
+      <p style="margin-bottom: 12px; color: var(--text-muted);">
+        Se limpiarán los valores en ceros para capturar una nueva jornada de venta.
+      </p>
+      <div class="alert-folio-chip" style="margin-bottom: 0;">
+        <span class="chip-label">SIGUIENTE FOLIO</span>
+        <span class="chip-num">#${nextFolio}</span>
+      </div>
+    `,
+    type: 'question',
+    confirmText: 'Sí, Iniciar Hoja',
+    cancelText: 'Cancelar',
+    onConfirm: () => {
+      executeResetForm(nextFolio);
+    },
+  });
+}
+
+function executeResetForm(nextFolio) {
   localStorage.setItem('cv_folio_current', nextFolio);
 
   appState = {
     currentRecordId: null,
     folio: nextFolio,
-    fecha: getTomorrowDateStr(),
-    vendedor: 'Ruta 1',
+    fecha: getTodayDateStr(),
+    vendedor: appState.vendedor || 'Isabel',
     rutaOUnidad: 'Unidad de Reparto',
     cambioInicial: 0,
     enviados: [
-      { id: '1', producto: 'Campechano', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
-      { id: '2', producto: 'Pollo', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
-      { id: '3', producto: 'Costilla', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
+      { id: '1', producto: 'Campechano', cantidad: 0, real: 0, precioUnitario: 170, neto: 0 },
+      { id: '3', producto: 'Costilla', cantidad: 0, real: 0, precioUnitario: 180, neto: 0 },
       { id: '4', producto: 'Familiar', cantidad: 0, real: 0, precioUnitario: 270, neto: 0 },
       { id: '5', producto: 'Chamorro', cantidad: 0, real: 0, precioUnitario: 270, neto: 0 },
     ],
     movimientos: [
       { id: 'm1', producto: 'Campechano', entradas: 0, salidas: 0 },
-      { id: 'm2', producto: 'Pollo', entradas: 0, salidas: 0 },
       { id: 'm3', producto: 'Costilla', entradas: 0, salidas: 0 },
       { id: 'm4', producto: 'Familiar', entradas: 0, salidas: 0 },
       { id: 'm5', producto: 'Chamorro', entradas: 0, salidas: 0 },
     ],
     vendidos: [
-      { id: 'v1', producto: 'Campechano', cantidad: 0, precioUnitario: 160, neto: 0 },
-      { id: 'v2', producto: 'Pollo', cantidad: 0, precioUnitario: 160, neto: 0 },
-      { id: 'v3', producto: 'Costilla', cantidad: 0, precioUnitario: 160, neto: 0 },
+      { id: 'v1', producto: 'Campechano', cantidad: 0, precioUnitario: 170, neto: 0 },
+      { id: 'v3', producto: 'Costilla', cantidad: 0, precioUnitario: 180, neto: 0 },
       { id: 'v4', producto: 'Familiar', cantidad: 0, precioUnitario: 270, neto: 0 },
       { id: 'v5', producto: 'Chamorro', cantidad: 0, precioUnitario: 270, neto: 0 },
     ],
     otrosPreciosVenta: 0,
     devoluciones: [
       { id: 'd1', producto: 'Campechano', devueltoReal: 0, esperado: 0, diferencia: 0 },
-      { id: 'd2', producto: 'Pollo', devueltoReal: 0, esperado: 0, diferencia: 0 },
       { id: 'd3', producto: 'Costilla', devueltoReal: 0, esperado: 0, diferencia: 0 },
       { id: 'd4', producto: 'Familiar', devueltoReal: 0, esperado: 0, diferencia: 0 },
       { id: 'd5', producto: 'Chamorro', devueltoReal: 0, esperado: 0, diferencia: 0 },
@@ -2036,6 +2208,9 @@ function resetAllForm() {
   document.getElementById('inputRecordNotas').value = '';
   document.getElementById('recordDate').value = appState.fecha;
 
+  const rSeller = document.getElementById('recordSeller');
+  if (rSeller) rSeller.value = appState.vendedor;
+
   const rFolio = document.getElementById('recordFolioInput');
   if (rFolio) rFolio.value = appState.folio;
 
@@ -2049,14 +2224,189 @@ function resetAllForm() {
   renderAll();
   calculateAndRender();
   showToast(`Nueva hoja lista • Folio ${appState.folio} (Todo en ceros)`);
+
+  showModernAlert({
+    type: 'success',
+    title: '¡Nueva Hoja en Blanco!',
+    html: `
+      <p style="margin-bottom: 8px;">La hoja de venta se ha reiniciado correctamente.</p>
+      <div class="alert-folio-chip" style="margin-top: 10px;">
+        <span class="chip-label">FOLIO EN CURSO</span>
+        <span class="chip-num">#${appState.folio}</span>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 6px;">
+        Responsable asignado: <strong style="color: var(--text-main);">${appState.vendedor}</strong>
+      </div>
+    `,
+    confirmText: 'Comenzar a Capturar',
+  });
 }
 
 // Toast Notification
 function showToast(msg) {
   const toast = document.getElementById('toast');
+  if (!toast) return;
   toast.textContent = msg;
   toast.classList.add('show');
   setTimeout(() => {
     toast.classList.remove('show');
   }, 2600);
+}
+
+// ===================================================
+// SISTEMA DE ALERTAS & CONFIRMACIONES MODERNAS
+// ===================================================
+function showModernAlert({
+  title = 'Aviso',
+  message = '',
+  html = null,
+  type = 'success', // 'success', 'error', 'warning', 'question', 'info'
+  confirmText = '¡Entendido!',
+  onConfirm = null,
+}) {
+  const modal = document.getElementById('modalAlert');
+  if (!modal) {
+    alert(message || title);
+    if (typeof onConfirm === 'function') onConfirm();
+    return;
+  }
+
+  const iconBox = document.getElementById('alertIconBox');
+  const titleEl = document.getElementById('alertTitle');
+  const bodyEl = document.getElementById('alertBody');
+  const btnCancel = document.getElementById('alertBtnCancel');
+  const btnConfirm = document.getElementById('alertBtnConfirm');
+
+  titleEl.textContent = title;
+  if (html) {
+    bodyEl.innerHTML = html;
+  } else {
+    bodyEl.textContent = message;
+  }
+
+  btnCancel.style.display = 'none';
+  btnConfirm.textContent = confirmText;
+
+  let iconHTML = '';
+  if (type === 'success') {
+    iconHTML = `
+      <div class="alert-circle-fx success">
+        <svg class="alert-svg-icon" viewBox="0 0 52 52">
+          <circle class="alert-svg-circle" cx="26" cy="26" r="23" fill="none"/>
+          <path class="alert-svg-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+    `;
+  } else if (type === 'error') {
+    iconHTML = `
+      <div class="alert-circle-fx error">
+        <svg class="alert-svg-icon" viewBox="0 0 52 52">
+          <circle class="alert-svg-circle" cx="26" cy="26" r="23" fill="none"/>
+          <path class="alert-svg-cross" fill="none" d="M16 16 36 36 M36 16 16 36"/>
+        </svg>
+      </div>
+    `;
+  } else if (type === 'warning') {
+    iconHTML = `
+      <div class="alert-circle-fx warning">
+        <span class="alert-symbol">⚠️</span>
+      </div>
+    `;
+  } else if (type === 'question') {
+    iconHTML = `
+      <div class="alert-circle-fx question">
+        <span class="alert-symbol">📋</span>
+      </div>
+    `;
+  } else {
+    iconHTML = `
+      <div class="alert-circle-fx info">
+        <span class="alert-symbol">ℹ️</span>
+      </div>
+    `;
+  }
+  iconBox.innerHTML = iconHTML;
+
+  modal.classList.add('open');
+
+  const cleanup = () => {
+    modal.classList.remove('open');
+    btnConfirm.onclick = null;
+    btnCancel.onclick = null;
+  };
+
+  btnConfirm.onclick = () => {
+    cleanup();
+    if (typeof onConfirm === 'function') onConfirm();
+  };
+}
+
+function showModernConfirm({
+  title = '¿Estás seguro?',
+  message = '',
+  html = null,
+  type = 'question',
+  confirmText = 'Continuar',
+  cancelText = 'Cancelar',
+  onConfirm = null,
+  onCancel = null,
+}) {
+  const modal = document.getElementById('modalAlert');
+  if (!modal) {
+    if (confirm(message || title)) {
+      if (typeof onConfirm === 'function') onConfirm();
+    } else {
+      if (typeof onCancel === 'function') onCancel();
+    }
+    return;
+  }
+
+  const iconBox = document.getElementById('alertIconBox');
+  const titleEl = document.getElementById('alertTitle');
+  const bodyEl = document.getElementById('alertBody');
+  const btnCancel = document.getElementById('alertBtnCancel');
+  const btnConfirm = document.getElementById('alertBtnConfirm');
+
+  titleEl.textContent = title;
+  if (html) {
+    bodyEl.innerHTML = html;
+  } else {
+    bodyEl.textContent = message;
+  }
+
+  btnCancel.style.display = 'inline-flex';
+  btnCancel.textContent = cancelText;
+  btnConfirm.textContent = confirmText;
+
+  let iconHTML = `
+    <div class="alert-circle-fx question">
+      <span class="alert-symbol">📋</span>
+    </div>
+  `;
+  if (type === 'warning') {
+    iconHTML = `
+      <div class="alert-circle-fx warning">
+        <span class="alert-symbol">⚠️</span>
+      </div>
+    `;
+  }
+  iconBox.innerHTML = iconHTML;
+
+  modal.classList.add('open');
+
+  const cleanup = () => {
+    modal.classList.remove('open');
+    btnConfirm.onclick = null;
+    btnCancel.onclick = null;
+  };
+
+  btnConfirm.onclick = () => {
+    cleanup();
+    if (typeof onConfirm === 'function') onConfirm();
+  };
+
+  btnCancel.onclick = () => {
+    cleanup();
+    if (typeof onCancel === 'function') onCancel();
+  };
 }

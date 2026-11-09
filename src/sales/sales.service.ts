@@ -277,7 +277,7 @@ export class SalesService implements OnModuleInit {
       ajusteAdicional: payload.ajusteAdicional,
     });
 
-    const targetFolio = payload.folio || '0001';
+    const targetFolio = payload.folio || '0013';
     let id = payload.id;
     let existingCreated: any = null;
 
@@ -312,7 +312,7 @@ export class SalesService implements OnModuleInit {
       id,
       folio: targetFolio,
       fecha: payload.fecha || new Date().toISOString().slice(0, 10),
-      vendedor: payload.vendedor || 'Ruta 1',
+      vendedor: payload.vendedor || 'Isabel',
       rutaOUnidad: payload.rutaOUnidad || 'Unidad de Reparto',
       cambioInicial: Number(payload.cambioInicial) || 0,
       enviados: calc.enviadosCalculados,
@@ -384,15 +384,13 @@ export class SalesService implements OnModuleInit {
       rutaOUnidad: 'Unidad de Reparto 01',
       cambioInicial: 0,
       enviados: [
-        { id: '1', producto: 'Campechano', cantidad: 0, real: 21, precioUnitario: 160, neto: 3360 },
-        { id: '2', producto: 'Pollo', cantidad: 0, real: 0, precioUnitario: 160, neto: 0 },
-        { id: '3', producto: 'Costilla', cantidad: 0, real: 2, precioUnitario: 160, neto: 320 },
+        { id: '1', producto: 'Campechano', cantidad: 0, real: 21, precioUnitario: 170, neto: 3570 },
+        { id: '3', producto: 'Costilla', cantidad: 0, real: 2, precioUnitario: 180, neto: 360 },
         { id: '4', producto: 'Familiar', cantidad: 0, real: 2, precioUnitario: 270, neto: 540 },
         { id: '5', producto: 'Chamorro', cantidad: 0, real: 2, precioUnitario: 270, neto: 540 },
       ],
       movimientos: [
         { id: 'm1', producto: 'Campechano', entradas: 0, salidas: 0 },
-        { id: 'm2', producto: 'Pollo', entradas: 0, salidas: 0 },
         { id: 'm3', producto: 'Costilla', entradas: 0, salidas: 0 },
         { id: 'm4', producto: 'Familiar', entradas: 0, salidas: 0 },
         { id: 'm5', producto: 'Chamorro', entradas: 0, salidas: 0 },
@@ -400,16 +398,14 @@ export class SalesService implements OnModuleInit {
         { id: 'm7', producto: 'Muslo con Costilla', entradas: 0, salidas: 0 },
       ],
       vendidos: [
-        { id: 'v1', producto: 'Campechano', cantidad: 11, precioUnitario: 160, neto: 1760 },
-        { id: 'v2', producto: 'Pollo', cantidad: 0, precioUnitario: 160, neto: 0 },
-        { id: 'v3', producto: 'Costilla', cantidad: 2, precioUnitario: 160, neto: 320 },
+        { id: 'v1', producto: 'Campechano', cantidad: 11, precioUnitario: 170, neto: 1870 },
+        { id: 'v3', producto: 'Costilla', cantidad: 2, precioUnitario: 180, neto: 360 },
         { id: 'v4', producto: 'Familiar', cantidad: 2, precioUnitario: 270, neto: 540 },
         { id: 'v5', producto: 'Chamorro', cantidad: 2, precioUnitario: 270, neto: 540 },
       ],
       otrosPreciosVenta: 0,
       devoluciones: [
         { id: 'd1', producto: 'Campechano', devueltoReal: 10, esperado: 10, diferencia: 0 },
-        { id: 'd2', producto: 'Pollo', devueltoReal: 0, esperado: 0, diferencia: 0 },
         { id: 'd3', producto: 'Costilla', devueltoReal: 0, esperado: 0, diferencia: 0 },
         { id: 'd4', producto: 'Familiar', devueltoReal: 0, esperado: 0, diferencia: 0 },
         { id: 'd5', producto: 'Chamorro', devueltoReal: 0, esperado: 0, diferencia: 0 },

@@ -30,14 +30,14 @@
           <div class="brand-text">
             <h1 class="brand-title">Control & Liquidación de Ventas</h1>
             <div class="brand-meta-line">
-              <span class="brand-folio-badge" id="headerFolio">Folio: 0001</span>
+              <span class="brand-folio-badge" id="headerFolio">Folio: 0013</span>
             </div>
           </div>
         </div>
         <div class="header-actions">
-          <button id="btnToggleDashboard" class="btn-chip btn-outline-chip desktop-toggle-btn" title="Alternar entre Vista Completa y Vista por Pestañas">
+          <button id="btnToggleDashboard" class="btn-chip btn-outline-chip desktop-toggle-btn" title="Alternar entre Vista Paso a Paso y Hoja Completa">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-            <span>Vista Completa</span>
+            <span id="btnToggleDashboardText">📑 Modo Tabla Completa</span>
           </button>
           <button id="btnHeaderSave" class="btn-chip btn-gold-chip desktop-only-btn" title="Guardar Corte Diario">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -66,14 +66,18 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           </span>
           <span class="field-label-tag">RESPONSABLE</span>
-          <input type="text" id="recordSeller" class="clean-input" placeholder="Ruta / Responsable" value="Ruta 1">
+          <select id="recordSeller" class="clean-input clean-select" title="Selecciona al Responsable">
+            <option value="Isabel" selected>Isabel</option>
+            <option value="Diego">Diego</option>
+            <option value="Julio">Julio</option>
+          </select>
         </div>
         <div class="input-inline folio-field-wrap">
           <span class="icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
           </span>
           <span class="field-label-tag">FOLIO</span>
-          <input type="text" id="recordFolioInput" class="clean-input font-tabular" placeholder="0001" value="0001" title="Número de Folio (Secuencial)">
+          <input type="text" id="recordFolioInput" class="clean-input font-tabular" placeholder="0013" value="0013" title="Número de Folio (Secuencial)">
         </div>
         <button id="btnHeaderReset" class="btn-chip btn-subtle-chip" title="Iniciar Nueva Hoja en Ceros">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
@@ -357,7 +361,69 @@
       </div>
     </div>
 
-    <!-- Main Content Area: Views (Vista Móvil / Asistente Pestañas) -->
+    <!-- ========================================================
+         BARRA DE PASOS GUIADOS (STEPPER WIZARD)
+         ======================================================== -->
+    <div class="wizard-stepper-wrap" id="wizardStepperWrap">
+      <div class="stepper-track">
+        <div class="stepper-fill-bar" id="stepperFillBar" style="width: 8.3%;"></div>
+      </div>
+      <div class="stepper-steps-row">
+        <button class="stepper-node active" type="button" data-step="1" data-tab="view-enviado">
+          <div class="node-circle">
+            <span class="node-num">1</span>
+            <span class="node-check">✓</span>
+          </div>
+          <span class="node-icon">📦</span>
+          <span class="node-label">Carga</span>
+        </button>
+        <button class="stepper-node" type="button" data-step="2" data-tab="view-vendido">
+          <div class="node-circle">
+            <span class="node-num">2</span>
+            <span class="node-check">✓</span>
+          </div>
+          <span class="node-icon">💰</span>
+          <span class="node-label">Ventas</span>
+        </button>
+        <button class="stepper-node" type="button" data-step="3" data-tab="view-devoluciones">
+          <div class="node-circle">
+            <span class="node-num">3</span>
+            <span class="node-check">✓</span>
+          </div>
+          <span class="node-icon">🔄</span>
+          <span class="node-label">Devolución</span>
+        </button>
+        <button class="stepper-node" type="button" data-step="4" data-tab="view-gastos">
+          <div class="node-circle">
+            <span class="node-num">4</span>
+            <span class="node-check">✓</span>
+          </div>
+          <span class="node-icon">🧾</span>
+          <span class="node-label">Gastos</span>
+        </button>
+        <button class="stepper-node" type="button" data-step="5" data-tab="view-billetes">
+          <div class="node-circle">
+            <span class="node-num">5</span>
+            <span class="node-check">✓</span>
+          </div>
+          <span class="node-icon">💵</span>
+          <span class="node-label">Billetes</span>
+        </button>
+        <button class="stepper-node" type="button" data-step="6" data-tab="view-resumen">
+          <div class="node-circle">
+            <span class="node-num">6</span>
+            <span class="node-check">✓</span>
+          </div>
+          <span class="node-icon">⚖️</span>
+          <span class="node-label">Cuadre</span>
+        </button>
+      </div>
+      <div class="stepper-current-badge">
+        <span class="badge-step-pill" id="stepperBadgeText">Paso 1 de 6: Carga Inicial de Productos</span>
+      </div>
+    </div>
+
+    <!-- Main Content Area: Views (Flujo Paso a Paso Guiado) -->
     <main class="views-wrapper" id="mobileViewsWrapper">
 
       <!-- ================= 1. PESTAÑA: ENVIADO Y AJUSTES ================= -->
@@ -427,6 +493,15 @@
             </div>
           </div>
         </div>
+
+        <!-- Navegación Paso 1 -->
+        <div class="wizard-step-footer">
+          <div class="footer-step-counter">Paso 1 de 6</div>
+          <button class="btn-step-nav btn-step-next" type="button" data-next="2">
+            <span>Siguiente: Registrar Ventas</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
       </section>
 
       <!-- ================= 2. PESTAÑA: VENTAS ================= -->
@@ -478,6 +553,19 @@
             </div>
           </div>
         </div>
+
+        <!-- Navegación Paso 2 -->
+        <div class="wizard-step-footer">
+          <button class="btn-step-nav btn-step-prev" type="button" data-prev="1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Anterior</span>
+          </button>
+          <div class="footer-step-counter">Paso 2 de 6</div>
+          <button class="btn-step-nav btn-step-next" type="button" data-next="3">
+            <span>Siguiente: Devolución</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
       </section>
 
       <!-- ================= 3. PESTAÑA: DEVOLUCIONES ================= -->
@@ -522,6 +610,19 @@
               <strong id="totalDevueltosDif">0 pzs (OK)</strong>
             </div>
           </div>
+        </div>
+
+        <!-- Navegación Paso 3 -->
+        <div class="wizard-step-footer">
+          <button class="btn-step-nav btn-step-prev" type="button" data-prev="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Anterior</span>
+          </button>
+          <div class="footer-step-counter">Paso 3 de 6</div>
+          <button class="btn-step-nav btn-step-next" type="button" data-next="4">
+            <span>Siguiente: Gastos</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
       </section>
 
@@ -574,6 +675,19 @@
             </div>
           </div>
         </div>
+
+        <!-- Navegación Paso 4 -->
+        <div class="wizard-step-footer">
+          <button class="btn-step-nav btn-step-prev" type="button" data-prev="3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Anterior</span>
+          </button>
+          <div class="footer-step-counter">Paso 4 de 6</div>
+          <button class="btn-step-nav btn-step-next" type="button" data-next="5">
+            <span>Siguiente: Billetes</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
       </section>
 
       <!-- ================= 5. PESTAÑA: ARQUEO DE BILLETES ================= -->
@@ -620,6 +734,19 @@
               <strong class="font-tabular highlight-gold" id="mobTotalArqueoGlobal">$0.00</strong>
             </div>
           </div>
+        </div>
+
+        <!-- Navegación Paso 5 -->
+        <div class="wizard-step-footer">
+          <button class="btn-step-nav btn-step-prev" type="button" data-prev="4">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Anterior</span>
+          </button>
+          <div class="footer-step-counter">Paso 5 de 6</div>
+          <button class="btn-step-nav btn-step-next btn-finish-highlight" type="button" data-next="6">
+            <span>Siguiente: Ver Cuadre Final</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
       </section>
 
@@ -740,6 +867,15 @@
             </button>
           </div>
         </div>
+
+        <!-- Navegación Paso 6 -->
+        <div class="wizard-step-footer final-step-footer">
+          <button class="btn-step-nav btn-step-prev" type="button" data-prev="5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Anterior: Billetes</span>
+          </button>
+          <div class="footer-step-counter">Paso 6 de 6: Final</div>
+        </div>
       </section>
     </main>
 
@@ -805,6 +941,23 @@
           <button id="btnPrintNow" class="btn-ticket-modal btn-print">
             🖨️ Imprimir
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Alerta Interactiva y Moderna -->
+    <div id="modalAlert" class="modal-backdrop alert-backdrop">
+      <div class="alert-dialog" id="alertDialog">
+        <div class="alert-icon-box" id="alertIconBox">
+          <!-- Ícono dinámico -->
+        </div>
+        <h3 class="alert-title" id="alertTitle">¡Notificación!</h3>
+        <div class="alert-body" id="alertBody">
+          <!-- Contenido / Resumen -->
+        </div>
+        <div class="alert-actions" id="alertActions">
+          <button id="alertBtnCancel" class="btn-alert-action btn-alert-secondary" style="display: none;">Cancelar</button>
+          <button id="alertBtnConfirm" class="btn-alert-action btn-alert-primary">Entendido</button>
         </div>
       </div>
     </div>

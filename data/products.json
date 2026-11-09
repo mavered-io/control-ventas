@@ -2,21 +2,14 @@
   {
     "id": "campechano",
     "nombre": "Campechano",
-    "precioDefault": 160,
-    "categoria": "Paquetes",
-    "activo": true
-  },
-  {
-    "id": "pollo",
-    "nombre": "Pollo",
-    "precioDefault": 160,
+    "precioDefault": 170,
     "categoria": "Paquetes",
     "activo": true
   },
   {
     "id": "costilla",
     "nombre": "Costilla",
-    "precioDefault": 160,
+    "precioDefault": 180,
     "categoria": "Paquetes",
     "activo": true
   },
