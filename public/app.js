@@ -97,9 +97,83 @@ let appState = {
 };
 
 // ===================================================
+// AUTOGUARDADO DE BORRADOR LOCAL
+// ===================================================
+let autoSaveDraftTimeout = null;
+
+function triggerAutoSaveDraft() {
+  if (autoSaveDraftTimeout) clearTimeout(autoSaveDraftTimeout);
+  autoSaveDraftTimeout = setTimeout(() => {
+    executeAutoSaveDraft();
+  }, 400);
+}
+
+function executeAutoSaveDraft() {
+  try {
+    const hasData = (appState.cambioInicial > 0) ||
+      (appState.gastos && appState.gastos.length > 0) ||
+      (appState.enviados && appState.enviados.some(e => e.real > 0)) ||
+      (appState.vendidos && appState.vendidos.some(v => v.cantidad > 0)) ||
+      (appState.billetes && Object.values(appState.billetes).some(v => v > 0));
+
+    if (!hasData) return;
+
+    localStorage.setItem('cv_active_draft', JSON.stringify({
+      timestamp: Date.now(),
+      state: appState,
+    }));
+
+    const indicator = document.getElementById('draftIndicator');
+    if (indicator) {
+      indicator.style.display = 'inline-flex';
+      indicator.textContent = '✓ Guardado auto';
+    }
+  } catch (err) {
+    console.warn('AutoSave error', err);
+  }
+}
+
+function restoreActiveDraft() {
+  try {
+    const saved = localStorage.getItem('cv_active_draft');
+    if (!saved) return false;
+    const parsed = JSON.parse(saved);
+    if (parsed && parsed.state) {
+      // Si el folio coincide con el actual
+      if (parsed.state.folio === appState.folio) {
+        appState = {
+          ...parsed.state,
+          fecha: getTodayDateStr(), // mantener fecha de hoy
+        };
+        const indicator = document.getElementById('draftIndicator');
+        if (indicator) {
+          indicator.style.display = 'inline-flex';
+          indicator.textContent = '✓ Borrador restaurado';
+        }
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn('Restore draft error', e);
+  }
+  return false;
+}
+
+function clearActiveDraft() {
+  try {
+    localStorage.removeItem('cv_active_draft');
+    const indicator = document.getElementById('draftIndicator');
+    if (indicator) {
+      indicator.style.display = 'none';
+    }
+  } catch (e) {}
+}
+
+// ===================================================
 // INICIALIZACIÓN
 // ===================================================
 document.addEventListener('DOMContentLoaded', () => {
+  restoreActiveDraft();
   setupNavigation();
   setupEventListeners();
   renderAll();
@@ -154,7 +228,7 @@ function goToStep(stepNum) {
   // 4. Barra de Progreso
   const fill = document.getElementById('stepperFillBar');
   if (fill) {
-    const pct = ((stepNum - 0.5) / 6) * 100;
+    const pct = ((stepNum - 1) / (STEP_CONFIG.length - 1)) * 100;
     fill.style.width = `${pct}%`;
   }
 
@@ -208,14 +282,272 @@ function setupNavigation() {
 }
 
 // ===================================================
+// SELECTOR DE FECHA PERSONALIZADO (CUSTOM DATEPICKER)
+// ===================================================
+const CAL_MONTH_NAMES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+const CAL_MONTH_SHORT = [
+  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+];
+
+let calViewYear = new Date().getFullYear();
+let calViewMonth = new Date().getMonth();
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const parts = dateStr.split('-');
+  if (parts.length < 3) return dateStr;
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return dateStr;
+  const dayStr = String(d).padStart(2, '0');
+  const monthStr = CAL_MONTH_SHORT[m] || '';
+  return `${dayStr} ${monthStr} ${y}`;
+}
+
+function updateDateDisplayLabel(dateStr) {
+  const lbl = document.getElementById('dateDisplayLabel');
+  if (lbl) {
+    lbl.textContent = formatDateDisplay(dateStr || appState.fecha);
+  }
+}
+
+function renderCustomCalendar() {
+  const titleEl = document.getElementById('calMonthTitle');
+  const gridEl = document.getElementById('calDaysGrid');
+  if (!titleEl || !gridEl) return;
+
+  titleEl.textContent = `${CAL_MONTH_NAMES[calViewMonth]} ${calViewYear}`;
+  gridEl.innerHTML = '';
+
+  // Fecha seleccionada actual en appState
+  let selY = -1, selM = -1, selD = -1;
+  if (appState.fecha) {
+    const parts = appState.fecha.split('-').map(Number);
+    if (parts.length === 3) {
+      selY = parts[0];
+      selM = parts[1] - 1;
+      selD = parts[2];
+    }
+  }
+
+  // Hoy
+  const today = new Date();
+  const tY = today.getFullYear();
+  const tM = today.getMonth();
+  const tD = today.getDate();
+
+  // Primer día de la semana para este mes (0=Dom, 1=Lun, ..., 6=Sáb)
+  const firstDayIndex = new Date(calViewYear, calViewMonth, 1).getDay();
+  const totalDaysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  const prevMonthLastDay = new Date(calViewYear, calViewMonth, 0).getDate();
+
+  // Días del mes anterior
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    const prevDay = prevMonthLastDay - i;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cal-day-cell other-month';
+    btn.textContent = prevDay;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let targetY = calViewYear;
+      let targetM = calViewMonth - 1;
+      if (targetM < 0) {
+        targetM = 11;
+        targetY--;
+      }
+      selectCalendarDate(targetY, targetM, prevDay);
+    });
+    gridEl.appendChild(btn);
+  }
+
+  // Días del mes actual
+  for (let d = 1; d <= totalDaysInMonth; d++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cal-day-cell';
+    btn.textContent = d;
+
+    if (calViewYear === tY && calViewMonth === tM && d === tD) {
+      btn.classList.add('today');
+    }
+
+    if (calViewYear === selY && calViewMonth === selM && d === selD) {
+      btn.classList.add('selected');
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectCalendarDate(calViewYear, calViewMonth, d);
+    });
+    gridEl.appendChild(btn);
+  }
+
+  // Días del mes siguiente para completar la cuadrícula de 7 columnas
+  const totalCells = firstDayIndex + totalDaysInMonth;
+  const remainingCells = (7 - (totalCells % 7)) % 7;
+  for (let nextDay = 1; nextDay <= remainingCells; nextDay++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cal-day-cell other-month';
+    btn.textContent = nextDay;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let targetY = calViewYear;
+      let targetM = calViewMonth + 1;
+      if (targetM > 11) {
+        targetM = 0;
+        targetY++;
+      }
+      selectCalendarDate(targetY, targetM, nextDay);
+    });
+    gridEl.appendChild(btn);
+  }
+}
+
+function selectCalendarDate(year, month, day) {
+  const yyyy = String(year);
+  const mm = String(month + 1).padStart(2, '0');
+  const dd = String(day).padStart(2, '0');
+  const dateStr = `${yyyy}-${mm}-${dd}`;
+
+  appState.fecha = dateStr;
+
+  const recDate = document.getElementById('recordDate');
+  if (recDate) {
+    recDate.value = dateStr;
+    recDate.dispatchEvent(new Event('change'));
+  }
+
+  updateDateDisplayLabel(dateStr);
+  closeCustomDatePicker();
+}
+
+function openCustomDatePicker() {
+  const dropdown = document.getElementById('customCalendarDropdown');
+  const wrap = document.getElementById('datePickerTriggerWrap');
+  if (!dropdown) return;
+
+  // Sincronizar vista de calendario con la fecha actualmente seleccionada
+  if (appState.fecha) {
+    const parts = appState.fecha.split('-').map(Number);
+    if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      calViewYear = parts[0];
+      calViewMonth = parts[1] - 1;
+    }
+  }
+
+  renderCustomCalendar();
+  dropdown.classList.add('open');
+  if (wrap) wrap.classList.add('active');
+}
+
+function closeCustomDatePicker() {
+  const dropdown = document.getElementById('customCalendarDropdown');
+  const wrap = document.getElementById('datePickerTriggerWrap');
+  if (dropdown) dropdown.classList.remove('open');
+  if (wrap) wrap.classList.remove('active');
+}
+
+function toggleCustomDatePicker() {
+  const dropdown = document.getElementById('customCalendarDropdown');
+  if (dropdown && dropdown.classList.contains('open')) {
+    closeCustomDatePicker();
+  } else {
+    openCustomDatePicker();
+  }
+}
+
+function initCustomDatePicker() {
+  const btnOpen = document.getElementById('btnOpenDatePicker');
+  if (btnOpen) {
+    btnOpen.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCustomDatePicker();
+    });
+  }
+
+  const btnPrev = document.getElementById('calPrevMonth');
+  if (btnPrev) {
+    btnPrev.addEventListener('click', (e) => {
+      e.stopPropagation();
+      calViewMonth--;
+      if (calViewMonth < 0) {
+        calViewMonth = 11;
+        calViewYear--;
+      }
+      renderCustomCalendar();
+    });
+  }
+
+  const btnNext = document.getElementById('calNextMonth');
+  if (btnNext) {
+    btnNext.addEventListener('click', (e) => {
+      e.stopPropagation();
+      calViewMonth++;
+      if (calViewMonth > 11) {
+        calViewMonth = 0;
+        calViewYear++;
+      }
+      renderCustomCalendar();
+    });
+  }
+
+  const btnToday = document.getElementById('calBtnToday');
+  if (btnToday) {
+    btnToday.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const now = new Date();
+      selectCalendarDate(now.getFullYear(), now.getMonth(), now.getDate());
+    });
+  }
+
+  const btnClose = document.getElementById('calBtnClose');
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeCustomDatePicker();
+    });
+  }
+
+  // Cerrar al hacer clic en cualquier parte fuera del dropdown
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('datePickerTriggerWrap');
+    if (wrap && !wrap.contains(e.target)) {
+      closeCustomDatePicker();
+    }
+  });
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeCustomDatePicker();
+    }
+  });
+
+  // Inicializar label con fecha actual
+  updateDateDisplayLabel(appState.fecha);
+}
+
+// ===================================================
 // EVENT LISTENERS GENERALES
 // ===================================================
 function setupEventListeners() {
+  // Inicializar selector de fecha personalizado
+  initCustomDatePicker();
+
   // Cambio de fecha y vendedor
   const recordDateInput = document.getElementById('recordDate');
   recordDateInput.value = appState.fecha;
   recordDateInput.addEventListener('change', (e) => {
     appState.fecha = e.target.value;
+    updateDateDisplayLabel(appState.fecha);
   });
 
   const recordSellerInput = document.getElementById('recordSeller');
@@ -318,13 +650,27 @@ function setupEventListeners() {
   // Historial Modal
   document.getElementById('btnOpenHistory').addEventListener('click', openHistoryModal);
   document.getElementById('btnCloseHistory').addEventListener('click', closeHistoryModal);
+  document.getElementById('btnExportHistoryCsv')?.addEventListener('click', exportHistoryToCSV);
+
+  // Filtros del historial
+  document.querySelectorAll('.history-pill').forEach((pill) => {
+    pill.addEventListener('click', () => {
+      const filter = pill.getAttribute('data-filter') || 'all';
+      setHistoryFilter(filter);
+    });
+  });
 
   // Limpiar Todo / Nuevo
   document.getElementById('btnResetAll').addEventListener('click', resetAllForm);
 
-  // Tema Dark / Light
+  // Tema Dark / Light Alta Gama
+  const savedTheme = localStorage.getItem('cv_theme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-theme');
+  }
   document.getElementById('btnToggleTheme').addEventListener('click', () => {
     document.body.classList.toggle('light-theme');
+    localStorage.setItem('cv_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
   });
 
   // Alternar Modo Paso a Paso (Wizard) vs Hoja Maestra Completa (Excel)
@@ -421,6 +767,47 @@ function setupEventListeners() {
 
   const deskBtnReset = document.getElementById('deskBtnResetAll');
   if (deskBtnReset) deskBtnReset.addEventListener('click', resetAllForm);
+
+  // Alternar selector de banco y placeholder en formularios de gastos
+  const newGastoTipo = document.getElementById('newGastoTipo');
+  const newGastoBanco = document.getElementById('newGastoBanco');
+  const newGastoConcepto = document.getElementById('newGastoConcepto');
+  if (newGastoTipo && newGastoBanco) {
+    newGastoTipo.addEventListener('change', () => {
+      const isTransf = newGastoTipo.value === 'transferencia';
+      newGastoBanco.style.display = isTransf ? 'inline-block' : 'none';
+      if (newGastoConcepto) {
+        newGastoConcepto.placeholder = isTransf
+          ? 'Nombre del cliente o nota (ej: Don Pepe)'
+          : 'Concepto del gasto (ej: Gasolina, Casetas)';
+      }
+    });
+  }
+
+  const deskNewGastoTipo = document.getElementById('deskNewGastoTipo');
+  const deskNewGastoBanco = document.getElementById('deskNewGastoBanco');
+  const deskNewGastoConcepto = document.getElementById('deskNewGastoConcepto');
+  if (deskNewGastoTipo && deskNewGastoBanco) {
+    deskNewGastoTipo.addEventListener('change', () => {
+      const isTransf = deskNewGastoTipo.value === 'transferencia';
+      deskNewGastoBanco.style.display = isTransf ? 'inline-block' : 'none';
+      if (deskNewGastoConcepto) {
+        deskNewGastoConcepto.placeholder = isTransf
+          ? 'Cliente / Nota (ej: Don Pepe)'
+          : 'Concepto (ej. Combustible, Gas)';
+      }
+    });
+  }
+
+  // Modal Transferencia: cerrar al hacer clic en el backdrop
+  const modalTransf = document.getElementById('modalTransferencia');
+  if (modalTransf) {
+    modalTransf.addEventListener('click', (e) => {
+      if (e.target === modalTransf) {
+        window.closeTransferModal();
+      }
+    });
+  }
 }
 
 // ===================================================
@@ -433,6 +820,7 @@ function renderAll() {
   if (rFolio && document.activeElement !== rFolio) rFolio.value = appState.folio;
   const rDate = document.getElementById('recordDate');
   if (rDate && document.activeElement !== rDate) rDate.value = appState.fecha;
+  updateDateDisplayLabel(appState.fecha);
   const rSeller = document.getElementById('recordSeller');
   if (rSeller && document.activeElement !== rSeller) rSeller.value = appState.vendedor || 'Isabel';
   renderEnviados();
@@ -656,13 +1044,16 @@ function renderGastos() {
     const item = document.createElement('div');
     item.className = 'gasto-item';
     const tagClass = g.tipo === 'transferencia' ? 'transferencia' : 'efectivo';
-    const tagLabel = g.tipo === 'transferencia' ? '💳 Transferencia' : '💵 Efectivo';
+    const tagLabel = g.tipo === 'transferencia' ? '💳 Pago Banco' : '[-] Gasto Efectivo';
+    const bankBadge = (g.tipo === 'transferencia' && g.banco)
+      ? `<span class="gasto-bank-badge ${g.banco === 'BBVA' ? 'bbva' : 'azteca'}">${g.banco}</span>`
+      : '';
 
     item.innerHTML = `
       <div class="gasto-left">
         <span class="gasto-tag ${tagClass}">${tagLabel}</span>
         <div>
-          <span class="gasto-title">${g.concepto}</span>
+          <span class="gasto-title">${g.concepto} ${bankBadge}</span>
           ${g.notas ? `<small style="display:block;color:var(--text-dim);font-size:0.7rem;">${g.notas}</small>` : ''}
         </div>
       </div>
@@ -679,9 +1070,21 @@ function handleAddGasto() {
   const conceptoInput = document.getElementById('newGastoConcepto');
   const montoInput = document.getElementById('newGastoMonto');
   const tipoSelect = document.getElementById('newGastoTipo');
+  const bancoSelect = document.getElementById('newGastoBanco');
 
-  const concepto = conceptoInput.value.trim();
+  let concepto = conceptoInput.value.trim();
   const monto = parseFloat(montoInput.value);
+  const tipo = tipoSelect.value;
+  let banco = '';
+
+  if (tipo === 'transferencia') {
+    banco = (bancoSelect && bancoSelect.value) ? bancoSelect.value : 'Banco Azteca';
+    if (!concepto) {
+      concepto = `Transferencia ${banco}`;
+    } else {
+      concepto = `${banco} • ${concepto}`;
+    }
+  }
 
   if (!concepto || isNaN(monto) || monto <= 0) {
     showToast('Ingresa un concepto y un monto válido');
@@ -692,7 +1095,8 @@ function handleAddGasto() {
     id: `g_${Date.now()}`,
     concepto,
     monto,
-    tipo: tipoSelect.value,
+    tipo,
+    banco,
   });
 
   conceptoInput.value = '';
@@ -714,25 +1118,82 @@ window.deleteGasto = (index) => {
   }
 };
 
-window.promptAddTransferencia = () => {
-  const montoStr = prompt('Ingresa el monto de la transferencia bancaria ($):');
-  if (!montoStr) return;
-  const monto = parseFloat(montoStr);
+// --- GESTIÓN DE TRANSFERENCIAS (MODAL MODERNO SIN ALERT) ---
+window.selectedTransferBank = 'Banco Azteca';
+
+window.openTransferModal = () => {
+  const modal = document.getElementById('modalTransferencia');
+  const montoInput = document.getElementById('transfModalMonto');
+  const refInput = document.getElementById('transfModalRef');
+
+  if (montoInput) montoInput.value = '';
+  if (refInput) refInput.value = '';
+  window.selectTransferBank('Banco Azteca');
+
+  if (modal) {
+    modal.classList.add('open');
+    setTimeout(() => {
+      if (montoInput) montoInput.focus();
+    }, 150);
+  }
+};
+
+window.closeTransferModal = () => {
+  const modal = document.getElementById('modalTransferencia');
+  if (modal) {
+    modal.classList.remove('open');
+  }
+};
+
+window.selectTransferBank = (bankName) => {
+  window.selectedTransferBank = bankName;
+  const selectEl = document.getElementById('transfModalBanco');
+  if (selectEl) selectEl.value = bankName;
+
+  const optAzteca = document.getElementById('bankOptionAzteca');
+  const optBBVA = document.getElementById('bankOptionBBVA');
+  if (optAzteca) optAzteca.classList.toggle('active', bankName === 'Banco Azteca');
+  if (optBBVA) optBBVA.classList.toggle('active', bankName === 'BBVA');
+};
+
+window.syncBankSelectionFromDropdown = (bankName) => {
+  window.selectTransferBank(bankName);
+};
+
+window.submitTransferModal = () => {
+  const montoInput = document.getElementById('transfModalMonto');
+  const refInput = document.getElementById('transfModalRef');
+
+  const monto = parseFloat(montoInput ? montoInput.value : 0);
   if (isNaN(monto) || monto <= 0) {
     showToast('Ingresa un monto válido mayor a 0');
+    if (montoInput) montoInput.focus();
     return;
   }
-  const concepto = prompt('Referencia / Banco / Cliente (opcional):', 'Transferencia Bancaria') || 'Transferencia Bancaria';
+
+  const banco = window.selectedTransferBank || 'Banco Azteca';
+  const ref = (refInput ? refInput.value.trim() : '');
+  const concepto = ref ? `${banco} • ${ref}` : `Transferencia ${banco}`;
+
   appState.gastos.push({
     id: `g_${Date.now()}`,
-    concepto: concepto.trim(),
-    monto,
+    concepto: concepto,
+    monto: monto,
     tipo: 'transferencia',
+    banco: banco,
+    referencia: ref,
   });
+
   renderGastos();
   renderDesktopGastos();
   calculateAndRender();
-  showToast(`✓ Transferencia agregada al arqueo: $${monto.toFixed(2)}`);
+  window.closeTransferModal();
+
+  showToast(`✓ Transferencia agregada a ${banco}: $${monto.toFixed(2)}`);
+};
+
+window.promptAddTransferencia = () => {
+  window.openTransferModal();
 };
 
 // --- 6. ARQUEO DE BILLETES ---
@@ -926,12 +1387,15 @@ function renderDesktopGastos() {
     const item = document.createElement('div');
     item.className = 'desk-gasto-item';
     const tagClass = g.tipo === 'transferencia' ? 'transferencia' : 'efectivo';
-    const tagLabel = g.tipo === 'transferencia' ? '💳 Transf' : '💵 Efec';
+    const tagLabel = g.tipo === 'transferencia' ? '💳 Banco' : '[-] Gasto';
+    const bankBadge = (g.tipo === 'transferencia' && g.banco)
+      ? `<span class="gasto-bank-badge ${g.banco === 'BBVA' ? 'bbva' : 'azteca'}">${g.banco}</span>`
+      : '';
 
     item.innerHTML = `
       <div class="desk-gasto-info">
         <span class="desk-gasto-tag ${tagClass}">${tagLabel}</span>
-        <span class="desk-gasto-name">${g.concepto}</span>
+        <span class="desk-gasto-name">${g.concepto} ${bankBadge}</span>
       </div>
       <div class="desk-gasto-right">
         <span class="desk-gasto-amount">$${g.monto.toFixed(2)}</span>
@@ -946,9 +1410,21 @@ function handleAddDesktopGasto() {
   const conceptoInput = document.getElementById('deskNewGastoConcepto');
   const montoInput = document.getElementById('deskNewGastoMonto');
   const tipoSelect = document.getElementById('deskNewGastoTipo');
+  const bancoSelect = document.getElementById('deskNewGastoBanco');
 
-  const concepto = conceptoInput.value.trim();
+  let concepto = conceptoInput.value.trim();
   const monto = parseFloat(montoInput.value);
+  const tipo = tipoSelect.value;
+  let banco = '';
+
+  if (tipo === 'transferencia') {
+    banco = (bancoSelect && bancoSelect.value) ? bancoSelect.value : 'Banco Azteca';
+    if (!concepto) {
+      concepto = `Transferencia ${banco}`;
+    } else {
+      concepto = `${banco} • ${concepto}`;
+    }
+  }
 
   if (!concepto || isNaN(monto) || monto <= 0) {
     showToast('Ingresa concepto y monto válido');
@@ -959,7 +1435,8 @@ function handleAddDesktopGasto() {
     id: `g_${Date.now()}`,
     concepto,
     monto,
-    tipo: tipoSelect.value,
+    tipo,
+    banco,
   });
 
   conceptoInput.value = '';
@@ -1080,16 +1557,32 @@ function calculateAndRender() {
   // 5. Gastos
   let totalGastosEfectivo = 0;
   let totalTransferencias = 0;
+  let totalTransfAzteca = 0;
+  let countTransfAzteca = 0;
+  let totalTransfBBVA = 0;
+  let countTransfBBVA = 0;
+
   appState.gastos.forEach((g) => {
     const monto = Number(g.monto) || 0;
     if (g.tipo === 'transferencia') {
       totalTransferencias += monto;
+      const b = (g.banco || '').toUpperCase();
+      const c = (g.concepto || '').toUpperCase();
+      if (b === 'BBVA' || c.includes('BBVA')) {
+        totalTransfBBVA += monto;
+        countTransfBBVA++;
+      } else {
+        totalTransfAzteca += monto;
+        countTransfAzteca++;
+      }
     } else {
       totalGastosEfectivo += monto;
     }
   });
   totalGastosEfectivo = Number(totalGastosEfectivo.toFixed(2));
   totalTransferencias = Number(totalTransferencias.toFixed(2));
+  totalTransfAzteca = Number(totalTransfAzteca.toFixed(2));
+  totalTransfBBVA = Number(totalTransfBBVA.toFixed(2));
   const totalGastosGeneral = Number((totalGastosEfectivo + totalTransferencias).toFixed(2));
 
   // 6. Arqueo Efectivo Físico
@@ -1110,16 +1603,30 @@ function calculateAndRender() {
   // Saldo sin Cambio = Saldo con Transferencia - Total Transferencias
   const saldoSinCambio = Number((saldoConTransferencia - totalTransferencias).toFixed(2));
 
-  // Efectivo Esperado en Caja = Saldo sin Cambio + Fondo de Cambio Inicial (suma numérica estricta)
-  const efectivoEsperadoEnCaja = Number((saldoSinCambio + cambioInicial).toFixed(2));
+  // Efectivo Neto Teórico (antes de validar que una caja física no puede tener billetes negativos)
+  const efectivoNetoTeorico = Number((saldoSinCambio + cambioInicial).toFixed(2));
 
-  // Falta / Sobra = Efectivo Contado - Efectivo Esperado
-  const faltaSobra = Number((totalEfectivoFisico - efectivoEsperadoEnCaja).toFixed(2));
+  let efectivoEsperadoEnCaja = 0;
+  let faltaSobra = 0;
+  let esDeficitPorGastos = false;
+
+  if (efectivoNetoTeorico >= 0) {
+    // Caso habitual: Las ventas y el fondo de cambio cubren los gastos
+    efectivoEsperadoEnCaja = efectivoNetoTeorico;
+    faltaSobra = Number((totalEfectivoFisico - efectivoEsperadoEnCaja).toFixed(2));
+  } else {
+    // Caso cuando los gastos superan las ventas (caja en números rojos)
+    // El cajón físico queda en $0.00 (no existen billetes negativos)
+    efectivoEsperadoEnCaja = 0;
+    esDeficitPorGastos = true;
+    // Si no hay billetes, la diferencia refleja el déficit exacto negativo (-$4,830.00), ¡NUNCA sobrante positivo!
+    faltaSobra = Number((totalEfectivoFisico + efectivoNetoTeorico).toFixed(2));
+  }
 
   // Saldo Final = Saldo sin Cambio (+ ajuste si aplica)
   const saldoFinal = Number((saldoSinCambio + ajusteAdicional).toFixed(2));
 
-  const estaCuadrado = Math.abs(faltaSobra) < 0.01 && totalDiferenciaPiezas === 0;
+  const estaCuadrado = Math.abs(faltaSobra) < 0.01 && totalDiferenciaPiezas === 0 && !esDeficitPorGastos;
 
   // Guardar en Estado Resumen
   appState.resumen = {
@@ -1135,12 +1642,18 @@ function calculateAndRender() {
     cambioInicial,
     totalGastosEfectivo,
     totalTransferencias,
+    totalTransfAzteca,
+    countTransfAzteca,
+    totalTransfBBVA,
+    countTransfBBVA,
     totalGastosGeneral,
     saldoConTransferencia,
     saldoSinCambio,
+    efectivoNetoTeorico,
     efectivoEsperadoEnCaja,
     totalEfectivoFisico,
     faltaSobra,
+    esDeficitPorGastos,
     ajusteAdicional,
     saldoFinal,
     estaCuadrado,
@@ -1148,6 +1661,9 @@ function calculateAndRender() {
 
   // Actualizar UI de Textos e Indicadores
   updateUIDisplays(appState.resumen);
+
+  // Autoguardar borrador
+  triggerAutoSaveDraft();
 }
 
 function updateUIDisplays(res) {
@@ -1221,6 +1737,17 @@ function updateUIDisplays(res) {
   document.getElementById('liqFaltaSobra').textContent = diffFormatted;
   document.getElementById('liqSaldoFinal').textContent = formatMoney(res.saldoFinal);
 
+  // Desglose de Transferencias por Banco en Paso 6
+  const setElVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  setElVal('liqTotalTransfBreakdown', formatMoney(res.totalTransferencias));
+  setElVal('totalAztecaDisplay', formatMoney(res.totalTransfAzteca || 0));
+  setElVal('countAztecaDisplay', `${res.countTransfAzteca || 0} ${(res.countTransfAzteca === 1 ? 'pago' : 'pagos')}`);
+  setElVal('totalBBVADisplay', formatMoney(res.totalTransfBBVA || 0));
+  setElVal('countBBVADisplay', `${res.countTransfBBVA || 0} ${(res.countTransfBBVA === 1 ? 'pago' : 'pagos')}`);
+
   // Hero Status Card
   const heroCard = document.getElementById('cuadreHero');
   const heroIcon = document.getElementById('heroStatusIcon');
@@ -1239,6 +1766,13 @@ function updateUIDisplays(res) {
     heroMsg.textContent = 'El efectivo físico y los paquetes devueltos coinciden con exactitud.';
     navIndicator.className = 'nav-indicator cuadrado';
     liqDiffRow.className = 'liq-row diff-row cuadrado';
+  } else if (res.esDeficitPorGastos) {
+    heroCard.className = 'cuadre-status-hero falta';
+    heroIcon.textContent = '🚨';
+    heroTag.textContent = 'DÉFICIT: GASTOS SUPERAN VENTAS';
+    heroMsg.textContent = `Los gastos registrados ($${res.totalGastosEfectivo.toFixed(2)}) superan las ventas del día ($${res.totalVendidoFinal.toFixed(2)}). Saldo a favor del vendedor: ${formatMoney(Math.abs(res.faltaSobra))}.`;
+    navIndicator.className = 'nav-indicator falta';
+    liqDiffRow.className = 'liq-row diff-row falta';
   } else if (res.faltaSobra < 0) {
     heroCard.className = 'cuadre-status-hero falta';
     heroIcon.textContent = '🚨';
@@ -1366,6 +1900,8 @@ function updateUIDisplays(res) {
   setEl('deskLiqGastosEfectivo', `-${formatMoney(res.totalGastosEfectivo)}`);
   setEl('deskLiqSaldoConTransf', formatMoney(res.saldoConTransferencia));
   setEl('deskLiqTransferencias', `-${formatMoney(res.totalTransferencias)}`);
+  setEl('deskTotalAzteca', formatMoney(res.totalTransfAzteca || 0));
+  setEl('deskTotalBBVA', formatMoney(res.totalTransfBBVA || 0));
   setEl('deskLiqSaldoSinCambio', formatMoney(res.saldoSinCambio));
   setEl('deskLiqCambioInicial', `+${formatMoney(res.cambioInicial)}`);
   setEl('deskLiqEsperadoEnCaja', formatMoney(res.efectivoEsperadoEnCaja));
@@ -1399,6 +1935,12 @@ function updateUIDisplays(res) {
       dHeroLabel.textContent = 'CAJA CUADRADA AL 100%';
       dHeroBadge.className = 'hero-badge ok';
       dHeroBadge.textContent = 'CUADRADO ✓';
+    } else if (res.esDeficitPorGastos) {
+      dHero.className = 'desk-hero-status falta';
+      dHeroIcon.textContent = '🚨';
+      dHeroLabel.textContent = 'DÉFICIT (GASTOS EXCEDEN VENTAS)';
+      dHeroBadge.className = 'hero-badge error';
+      dHeroBadge.textContent = 'DÉFICIT GASTOS';
     } else if (res.faltaSobra < 0) {
       dHero.className = 'desk-hero-status falta';
       dHeroIcon.textContent = '🚨';
@@ -1519,6 +2061,40 @@ function addCustomProductRow() {
 
 // Guardar Registro en NestJS Backend
 async function saveRecordToBackend() {
+  const r = appState.resumen || {};
+  const diff = r.faltaSobra || 0;
+
+  // Alerta preventiva inteligente si hay un faltante notable (mayor a $50)
+  if (diff < -50) {
+    showModernConfirm({
+      type: 'warning',
+      title: '⚠️ Atención: Faltante en Caja',
+      html: `
+        <div style="text-align: left; margin-bottom: 8px;">
+          <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 10px;">
+            El corte actual presenta un <strong>faltante de <span style="color:#fb7185;font-weight:900;">-$${Math.abs(diff).toFixed(2)}</span></strong> respecto al efectivo esperado.
+          </p>
+          <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 10px; padding: 12px; font-size: 0.82rem; color: #fb7185; line-height: 1.45;">
+            <strong>💡 Verifica antes de cerrar:</strong><br>
+            • ¿Contaste bien todas las monedas y billetes?<br>
+            • ¿Registraste todos los cobros de <strong>Banco Azteca</strong> y <strong>BBVA</strong>?<br>
+            • ¿Capturaste todos los gastos en efectivo?
+          </div>
+        </div>
+      `,
+      confirmText: 'Sí, Guardar con Faltante',
+      cancelText: 'Revisar Conteo',
+      onConfirm: () => {
+        executeSaveRecordToBackend();
+      },
+    });
+    return;
+  }
+
+  await executeSaveRecordToBackend();
+}
+
+async function executeSaveRecordToBackend() {
   try {
     showToast('Guardando corte en el servidor...');
     const payload = {
@@ -1537,6 +2113,9 @@ async function saveRecordToBackend() {
     appState.currentRecordId = saved.id;
     appState.folio = saved.folio;
     document.getElementById('headerFolio').textContent = `Folio: ${saved.folio}`;
+
+    // Limpiar borrador temporal guardado
+    clearActiveDraft();
 
     showToast(`✓ Corte guardado exitosamente: ${saved.folio}`);
     if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
@@ -1627,7 +2206,7 @@ function buildTicketHTML(state) {
   let rowsGastos = '';
   state.gastos.forEach((g) => {
     const isTransf = g.tipo === 'transferencia';
-    const tag = isTransf ? '[Transf]' : '[Efec]';
+    const tag = isTransf ? (g.banco ? `[💳 ${g.banco}]` : '[💳 Transf]') : '[💵 Efec]';
     rowsGastos += `
       <tr>
         <td>${tag} ${g.concepto}</td>
@@ -1733,6 +2312,16 @@ function buildTicketHTML(state) {
         <span>Cobros por Transferencia:</span>
         <span>${formatMoney(r.totalTransferencias)}</span>
       </div>
+      ${r.totalTransferencias > 0 ? `
+        <div class="ticket-row" style="font-size: 10px; color: #555; padding-left: 8px;">
+          <span>• Banco Azteca (${r.countTransfAzteca || 0}):</span>
+          <span>${formatMoney(r.totalTransfAzteca || 0)}</span>
+        </div>
+        <div class="ticket-row" style="font-size: 10px; color: #555; padding-left: 8px;">
+          <span>• BBVA (${r.countTransfBBVA || 0}):</span>
+          <span>${formatMoney(r.totalTransfBBVA || 0)}</span>
+        </div>
+      ` : ''}
       <div class="ticket-divider"></div>
 
       <!-- 4. Arqueo de Efectivo Físico -->
@@ -1835,16 +2424,25 @@ function getWhatsAppSummaryText() {
   text += `*Ruta/Vendedor:* ${appState.vendedor}\n`;
   text += `──────────────────────\n`;
   text += `*📦 DESPACHADO:* ${r.totalPaquetesEnviadosReal} pzs ($${r.totalValorEnviado.toFixed(2)})\n`;
-  text += `*🍗 VENDIDO:* ${r.totalPaquetesVendidos} pzs ($${r.totalVendidoFinal.toFixed(2)})\n`;
+  text += `*💰 VENDIDO:* ${r.totalPaquetesVendidos} pzs ($${r.totalVendidoFinal.toFixed(2)})\n`;
   text += `*🔄 DEVUELTO:* ${r.totalPaquetesDevueltos} pzs (Dif: ${r.diferenciaPaquetesTotal} pzs)\n`;
   text += `──────────────────────\n`;
   text += `*🧾 GASTOS DEDUCIBLES:* $${r.totalGastosEfectivo.toFixed(2)}\n`;
   if (appState.gastos.length > 0) {
     appState.gastos.forEach((g) => {
-      text += `  • ${g.concepto} (${g.tipo}): $${g.monto.toFixed(2)}\n`;
+      const tipoIcon = g.tipo === 'transferencia' ? (g.banco ? `💳 ${g.banco}` : '💳 Transferencia') : '💵 Efectivo';
+      text += `  • [${tipoIcon}] ${g.concepto}: $${g.monto.toFixed(2)}\n`;
     });
   }
   text += `*💳 TRANSFERENCIAS:* $${r.totalTransferencias.toFixed(2)}\n`;
+  if (r.totalTransferencias > 0) {
+    if (r.totalTransfAzteca > 0) {
+      text += `  • 🟢 Banco Azteca: $${r.totalTransfAzteca.toFixed(2)} (${r.countTransfAzteca} pagos)\n`;
+    }
+    if (r.totalTransfBBVA > 0) {
+      text += `  • 🔵 BBVA: $${r.totalTransfBBVA.toFixed(2)} (${r.countTransfBBVA} pagos)\n`;
+    }
+  }
   text += `*💵 CAMBIO INICIAL:* $${r.cambioInicial.toFixed(2)}\n`;
   text += `──────────────────────\n`;
   text += `*💰 EFECTIVO ESPERADO:* $${r.efectivoEsperadoEnCaja.toFixed(2)}\n`;
@@ -2041,78 +2639,258 @@ function closeTicketModal() {
 // Alias de retrocompatibilidad
 const shareViaWhatsApp = shareTicketViaWhatsApp;
 
-// Modal de Historial
+// ===================================================
+// HISTORIAL MEJORADO: FILTROS & EXPORTACIÓN A EXCEL
+// ===================================================
+let loadedHistoryRecords = [];
+let currentHistoryFilter = 'all';
+
 async function openHistoryModal() {
   const modal = document.getElementById('modalHistory');
   const container = document.getElementById('historyListContainer');
+  const summaryEl = document.getElementById('historyKpiSummary');
+
   modal.classList.add('open');
   container.innerHTML = '<p class="empty-state">Cargando cortes...</p>';
+  if (summaryEl) summaryEl.textContent = 'Consultando registros...';
 
   try {
     const res = await fetch(API_BASE);
-    const records = await res.json();
-
-    if (!records || records.length === 0) {
-      container.innerHTML = '<p class="empty-state">Aún no hay cortes guardados en el historial.</p>';
-      return;
-    }
-
-    container.innerHTML = '';
-    records.forEach((rec) => {
-      const item = document.createElement('div');
-      item.className = 'item-row-card';
-      item.style.marginBottom = '10px';
-      item.style.cursor = 'pointer';
-
-      const diff = rec.resumen.faltaSobra;
-      const diffBadge = diff === 0
-        ? `<span class="badge-status ok">✓ Cuadrado</span>`
-        : `<span class="badge-status warning">${diff < 0 ? '-' : '+'}$${Math.abs(diff).toFixed(2)}</span>`;
-
-      item.innerHTML = `
-        <div class="item-header-line">
-          <div>
-            <strong>${rec.folio}</strong>
-            <small style="display:block;color:var(--text-dim)">${rec.fecha} • ${rec.vendedor}</small>
-          </div>
-          ${diffBadge}
-        </div>
-        <div class="item-controls-line" style="margin-top:6px;">
-          <span style="font-size:0.85rem;color:var(--text-muted)">Vendido: <strong>$${rec.resumen.totalVendidoFinal.toFixed(2)}</strong></span>
-          <span style="font-size:0.95rem;font-weight:800;color:var(--orange-primary)">Final: $${rec.resumen.saldoFinal.toFixed(2)}</span>
-        </div>
-      `;
-
-      item.addEventListener('click', () => {
-        appState = {
-          ...rec,
-          currentRecordId: rec.id,
-        };
-        document.getElementById('inputCambioInicial').value = appState.cambioInicial;
-        document.getElementById('inputOtrosPrecios').value = appState.otrosPreciosVenta;
-        document.getElementById('inputRecordNotas').value = appState.notas || '';
-        document.getElementById('recordSeller').value = appState.vendedor;
-        document.getElementById('recordDate').value = appState.fecha;
-
-        const dCambio = document.getElementById('deskCambioInicial');
-        if (dCambio) dCambio.value = appState.cambioInicial;
-        const dOtros = document.getElementById('deskOtrosPrecios');
-        if (dOtros) dOtros.value = appState.otrosPreciosVenta;
-        const dNotas = document.getElementById('deskNotas');
-        if (dNotas) dNotas.value = appState.notas || '';
-
-        renderAll();
-        calculateAndRender();
-        closeHistoryModal();
-        showToast(`Corte cargado: ${rec.folio}`);
-      });
-
-      container.appendChild(item);
-    });
+    loadedHistoryRecords = await res.json();
+    renderFilteredHistory();
   } catch (err) {
     console.error(err);
     container.innerHTML = '<p class="empty-state">Error al cargar historial desde el servidor.</p>';
+    if (summaryEl) summaryEl.textContent = 'Error al consultar';
   }
+}
+
+function setHistoryFilter(filterName) {
+  currentHistoryFilter = filterName;
+  document.querySelectorAll('.history-pill').forEach((pill) => {
+    pill.classList.toggle('active', pill.getAttribute('data-filter') === filterName);
+  });
+  renderFilteredHistory();
+}
+
+function renderFilteredHistory() {
+  const container = document.getElementById('historyListContainer');
+  const summaryEl = document.getElementById('historyKpiSummary');
+  if (!container) return;
+
+  if (!loadedHistoryRecords || loadedHistoryRecords.length === 0) {
+    container.innerHTML = '<p class="empty-state">Aún no hay cortes guardados en el historial.</p>';
+    if (summaryEl) summaryEl.textContent = '0 cortes registrados';
+    return;
+  }
+
+  // Filtrar según responsable
+  const filtered = (currentHistoryFilter === 'all')
+    ? loadedHistoryRecords
+    : loadedHistoryRecords.filter(r => (r.vendedor || '').toLowerCase() === currentHistoryFilter.toLowerCase());
+
+  // Calcular estadísticas para el filtro actual
+  let totalVendidoFiltro = 0;
+  filtered.forEach(r => {
+    totalVendidoFiltro += (r.resumen && r.resumen.totalVendidoFinal) ? r.resumen.totalVendidoFinal : 0;
+  });
+
+  if (summaryEl) {
+    const label = currentHistoryFilter === 'all' ? 'Totales' : currentHistoryFilter;
+    summaryEl.textContent = `${filtered.length} cortes (${label}) • Vendido: $${totalVendidoFiltro.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="empty-state">No hay cortes registrados para ${currentHistoryFilter}.</p>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  filtered.forEach((rec) => {
+    const item = document.createElement('div');
+    item.className = 'item-row-card history-item-card';
+    item.style.marginBottom = '10px';
+    item.style.cursor = 'pointer';
+
+    const diff = rec.resumen ? rec.resumen.faltaSobra : 0;
+    const diffBadge = Math.abs(diff) < 0.01
+      ? `<span class="badge-status ok">✓ Cuadrado</span>`
+      : `<span class="badge-status warning">${diff < 0 ? '-' : '+'}$${Math.abs(diff).toFixed(2)}</span>`;
+
+    item.innerHTML = `
+      <div class="item-header-line">
+        <div>
+          <strong style="font-size:1.05rem;">${rec.folio}</strong>
+          <small style="display:block;color:var(--text-dim);margin-top:2px;">${rec.fecha} • 👤 ${rec.vendedor}</small>
+        </div>
+        <div class="history-actions-top">
+          ${diffBadge}
+          <button class="btn-delete-record" type="button" title="Eliminar este corte">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="item-controls-line" style="margin-top:8px;">
+        <span style="font-size:0.85rem;color:var(--text-muted)">Vendido: <strong>$${((rec.resumen && rec.resumen.totalVendidoFinal) || 0).toFixed(2)}</strong></span>
+        <span style="font-size:0.95rem;font-weight:800;color:var(--orange-primary)">Final: $${((rec.resumen && rec.resumen.saldoFinal) || 0).toFixed(2)}</span>
+      </div>
+    `;
+
+    // Botón para borrar corte
+    const btnDel = item.querySelector('.btn-delete-record');
+    if (btnDel) {
+      btnDel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showModernConfirm({
+          type: 'warning',
+          title: '¿Eliminar este corte?',
+          html: `
+            <p style="margin-bottom: 12px; color: var(--text-muted);">
+              ¿Deseas eliminar definitivamente el corte <strong>Folio ${rec.folio}</strong> (${rec.fecha} • ${rec.vendedor})?
+            </p>
+            <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 8px; padding: 10px; font-size: 0.84rem; color: #fb7185;">
+              ⚠️ Esta acción borrará el registro permanentemente del sistema.
+            </div>
+          `,
+          confirmText: 'Sí, Eliminar Corte',
+          cancelText: 'Cancelar',
+          onConfirm: async () => {
+            try {
+              showToast('Eliminando corte...');
+              const delRes = await fetch(`${API_BASE}/${rec.id}`, { method: 'DELETE' });
+              if (!delRes.ok) throw new Error('Error al eliminar');
+
+              if (appState.currentRecordId === rec.id) {
+                appState.currentRecordId = null;
+              }
+
+              showToast(`✓ Corte ${rec.folio} eliminado correctamente`);
+              openHistoryModal();
+            } catch (err) {
+              console.error(err);
+              showModernAlert({
+                type: 'error',
+                title: 'Error al Eliminar',
+                message: 'No se pudo eliminar el corte del servidor. Inténtalo de nuevo.',
+              });
+            }
+          },
+        });
+      });
+    }
+
+    // Cargar corte en el formulario al hacer clic
+    item.addEventListener('click', () => {
+      appState = {
+        ...rec,
+        currentRecordId: rec.id,
+      };
+      document.getElementById('inputCambioInicial').value = appState.cambioInicial;
+      document.getElementById('inputOtrosPrecios').value = appState.otrosPreciosVenta;
+      document.getElementById('inputRecordNotas').value = appState.notas || '';
+      document.getElementById('recordSeller').value = appState.vendedor;
+      document.getElementById('recordDate').value = appState.fecha;
+
+      const dCambio = document.getElementById('deskCambioInicial');
+      if (dCambio) dCambio.value = appState.cambioInicial;
+      const dOtros = document.getElementById('deskOtrosPrecios');
+      if (dOtros) dOtros.value = appState.otrosPreciosVenta;
+      const dNotas = document.getElementById('deskNotas');
+      if (dNotas) dNotas.value = appState.notas || '';
+
+      renderAll();
+      calculateAndRender();
+      closeHistoryModal();
+      showToast(`Corte cargado: ${rec.folio}`);
+    });
+
+    container.appendChild(item);
+  });
+}
+
+function exportHistoryToCSV() {
+  const records = loadedHistoryRecords;
+  if (!records || records.length === 0) {
+    showToast('No hay cortes registrados para exportar');
+    return;
+  }
+
+  // Encabezados limpios para Excel
+  const headers = [
+    'Folio',
+    'Fecha',
+    'Responsable',
+    'Total Vendido ($)',
+    'Gastos Efectivo ($)',
+    'Transf. Azteca ($)',
+    'Transf. BBVA ($)',
+    'Total Transferencias ($)',
+    'Fondo Inicial ($)',
+    'Efectivo Esperado ($)',
+    'Efectivo Contado ($)',
+    'Diferencia ($)',
+    'Estado',
+    'Saldo Final ($)',
+    'Notas',
+  ];
+
+  const rows = records.map((r) => {
+    const res = r.resumen || {};
+    let tAzteca = 0, tBBVA = 0;
+    if (r.gastos && Array.isArray(r.gastos)) {
+      r.gastos.forEach((g) => {
+        if (g.tipo === 'transferencia') {
+          const m = Number(g.monto) || 0;
+          const b = (g.banco || '').toUpperCase();
+          const c = (g.concepto || '').toUpperCase();
+          if (b === 'BBVA' || c.includes('BBVA')) {
+            tBBVA += m;
+          } else {
+            tAzteca += m;
+          }
+        }
+      });
+    }
+
+    const diff = res.faltaSobra || 0;
+    const estado = Math.abs(diff) < 0.01 ? 'Cuadrado' : (diff < 0 ? `Faltante (${diff.toFixed(2)})` : `Sobrante (+${diff.toFixed(2)})`);
+
+    return [
+      `"${r.folio || ''}"`,
+      `"${r.fecha || ''}"`,
+      `"${r.vendedor || ''}"`,
+      (res.totalVendidoFinal || 0).toFixed(2),
+      (res.totalGastosEfectivo || 0).toFixed(2),
+      tAzteca.toFixed(2),
+      tBBVA.toFixed(2),
+      (res.totalTransferencias || 0).toFixed(2),
+      (res.cambioInicial || 0).toFixed(2),
+      (res.efectivoEsperadoEnCaja || 0).toFixed(2),
+      (res.totalEfectivoFisico || 0).toFixed(2),
+      diff.toFixed(2),
+      `"${estado}"`,
+      (res.saldoFinal || 0).toFixed(2),
+      `"${(r.notas || '').replace(/"/g, '""')}"`,
+    ].join(',');
+  });
+
+  // UTF-8 BOM para que Excel en Windows abra caracteres acentuados perfectamente
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Reporte_Liquidaciones_${getTodayDateStr()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📥 Reporte de Excel descargado');
 }
 
 function closeHistoryModal() {
@@ -2152,6 +2930,7 @@ function resetAllForm() {
 
 function executeResetForm(nextFolio) {
   localStorage.setItem('cv_folio_current', nextFolio);
+  clearActiveDraft();
 
   appState = {
     currentRecordId: null,

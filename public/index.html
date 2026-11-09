@@ -31,6 +31,7 @@
             <h1 class="brand-title">Control & Liquidación de Ventas</h1>
             <div class="brand-meta-line">
               <span class="brand-folio-badge" id="headerFolio">Folio: 0013</span>
+              <span class="draft-indicator" id="draftIndicator" title="Tus cambios se guardan automáticamente en tu dispositivo">✓ Borrador guardado</span>
             </div>
           </div>
         </div>
@@ -54,12 +55,35 @@
 
       <!-- Route, Date & Folio Bar Formal -->
       <div class="route-date-bar">
-        <div class="input-inline">
+        <div class="input-inline date-picker-trigger-wrap" id="datePickerTriggerWrap">
           <span class="icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           </span>
           <span class="field-label-tag">FECHA</span>
-          <input type="date" id="recordDate" class="clean-input">
+          <button type="button" id="btnOpenDatePicker" class="clean-input clean-date-btn" title="Seleccionar fecha en calendario">
+            <span id="dateDisplayLabel">08 Nov 2026</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <input type="hidden" id="recordDate" class="clean-input">
+
+          <!-- Dropdown Popup del Calendario Propio -->
+          <div class="custom-calendar-dropdown" id="customCalendarDropdown">
+            <div class="cal-header">
+              <button type="button" class="cal-nav-btn" id="calPrevMonth" title="Mes Anterior">❮</button>
+              <span class="cal-month-title" id="calMonthTitle">Noviembre 2026</span>
+              <button type="button" class="cal-nav-btn" id="calNextMonth" title="Mes Siguiente">❯</button>
+            </div>
+            <div class="cal-weekdays">
+              <span>Do</span><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span>
+            </div>
+            <div class="cal-days-grid" id="calDaysGrid">
+              <!-- Días inyectados dinámicamente -->
+            </div>
+            <div class="cal-footer">
+              <button type="button" class="cal-footer-btn" id="calBtnToday">Hoy</button>
+              <button type="button" class="cal-footer-btn cal-btn-close" id="calBtnClose">Cerrar</button>
+            </div>
+          </div>
         </div>
         <div class="input-inline">
           <span class="icon">
@@ -202,6 +226,10 @@
                 <option value="efectivo">Gasto Efectivo (Deducción)</option>
                 <option value="transferencia">Transferencia Bancaria</option>
               </select>
+              <select id="deskNewGastoBanco" class="desk-select" style="display: none;">
+                <option value="Banco Azteca" selected>Banco Azteca</option>
+                <option value="BBVA">BBVA</option>
+              </select>
               <button id="deskBtnAddGasto" class="desk-btn-primary">+ Añadir</button>
             </div>
           </div>
@@ -313,6 +341,10 @@
               <span>(-) Transferencias Bancarias</span>
               <span class="text-amber" id="deskLiqTransferencias">-$0.00</span>
             </div>
+            <div class="desk-transf-breakdown-row" id="deskTransfBreakdownRow">
+              <span class="badge-sub-bank azteca">🟢 Azteca: <strong id="deskTotalAzteca">$0.00</strong></span>
+              <span class="badge-sub-bank bbva">🔵 BBVA: <strong id="deskTotalBBVA">$0.00</strong></span>
+            </div>
             <div class="desk-liq-row subtotal">
               <span>(=) Saldo sin Cambio</span>
               <strong id="deskLiqSaldoSinCambio">$0.00</strong>
@@ -365,56 +397,67 @@
          BARRA DE PASOS GUIADOS (STEPPER WIZARD)
          ======================================================== -->
     <div class="wizard-stepper-wrap" id="wizardStepperWrap">
-      <div class="stepper-track">
-        <div class="stepper-fill-bar" id="stepperFillBar" style="width: 8.3%;"></div>
-      </div>
       <div class="stepper-steps-row">
-        <button class="stepper-node active" type="button" data-step="1" data-tab="view-enviado">
+        <div class="stepper-track">
+          <div class="stepper-fill-bar" id="stepperFillBar" style="width: 0%;"></div>
+        </div>
+        <!-- 1. Carga de Productos -->
+        <button class="stepper-node active" type="button" data-step="1" data-tab="view-enviado" title="Paso 1: Carga Inicial de Productos">
           <div class="node-circle">
-            <span class="node-num">1</span>
-            <span class="node-check">✓</span>
+            <span class="node-symbol">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </span>
           </div>
-          <span class="node-icon">📦</span>
           <span class="node-label">Carga</span>
         </button>
-        <button class="stepper-node" type="button" data-step="2" data-tab="view-vendido">
+
+        <!-- 2. Ventas del Día -->
+        <button class="stepper-node" type="button" data-step="2" data-tab="view-vendido" title="Paso 2: Ventas del Día">
           <div class="node-circle">
-            <span class="node-num">2</span>
-            <span class="node-check">✓</span>
+            <span class="node-symbol">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </span>
           </div>
-          <span class="node-icon">💰</span>
           <span class="node-label">Ventas</span>
         </button>
-        <button class="stepper-node" type="button" data-step="3" data-tab="view-devoluciones">
+
+        <!-- 3. Devolución de Stock -->
+        <button class="stepper-node" type="button" data-step="3" data-tab="view-devoluciones" title="Paso 3: Devolución de Stock">
           <div class="node-circle">
-            <span class="node-num">3</span>
-            <span class="node-check">✓</span>
+            <span class="node-symbol">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            </span>
           </div>
-          <span class="node-icon">🔄</span>
           <span class="node-label">Devolución</span>
         </button>
-        <button class="stepper-node" type="button" data-step="4" data-tab="view-gastos">
+
+        <!-- 4. Gastos y Transferencias -->
+        <button class="stepper-node" type="button" data-step="4" data-tab="view-gastos" title="Paso 4: Gastos y Transferencias">
           <div class="node-circle">
-            <span class="node-num">4</span>
-            <span class="node-check">✓</span>
+            <span class="node-symbol">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            </span>
           </div>
-          <span class="node-icon">🧾</span>
           <span class="node-label">Gastos</span>
         </button>
-        <button class="stepper-node" type="button" data-step="5" data-tab="view-billetes">
+
+        <!-- 5. Billetes y Monedas (Efectivo) -->
+        <button class="stepper-node" type="button" data-step="5" data-tab="view-billetes" title="Paso 5: Arqueo de Billetes">
           <div class="node-circle">
-            <span class="node-num">5</span>
-            <span class="node-check">✓</span>
+            <span class="node-symbol">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+            </span>
           </div>
-          <span class="node-icon">💵</span>
           <span class="node-label">Billetes</span>
         </button>
-        <button class="stepper-node" type="button" data-step="6" data-tab="view-resumen">
+
+        <!-- 6. Cuadre Final -->
+        <button class="stepper-node" type="button" data-step="6" data-tab="view-resumen" title="Paso 6: Cuadre Final">
           <div class="node-circle">
-            <span class="node-num">6</span>
-            <span class="node-check">✓</span>
+            <span class="node-symbol">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </span>
           </div>
-          <span class="node-icon">⚖️</span>
           <span class="node-label">Cuadre</span>
         </button>
       </div>
@@ -639,7 +682,7 @@
           <!-- Formulario para agregar nuevo gasto -->
           <div class="add-gasto-form">
             <div class="form-row">
-              <input type="text" id="newGastoConcepto" class="styled-input" placeholder="Concepto (ej: Tortillas, Gas)">
+              <input type="text" id="newGastoConcepto" class="styled-input" placeholder="Concepto del gasto (ej: Gasolina, Casetas)">
               <div class="input-with-symbol">
                 <span class="sym">$</span>
                 <input type="number" id="newGastoMonto" class="styled-input" placeholder="Monto" step="5" min="0">
@@ -647,8 +690,12 @@
             </div>
             <div class="form-row">
               <select id="newGastoTipo" class="styled-select">
-                <option value="efectivo">💵 Gasto en Efectivo (Cajón)</option>
-                <option value="transferencia">💳 Cobro por Transferencia (Banco)</option>
+                <option value="efectivo">[-] Gasto en Efectivo (Salida de cajón)</option>
+                <option value="transferencia">💳 Cobro por Transferencia (Pago al banco)</option>
+              </select>
+              <select id="newGastoBanco" class="styled-select" style="display: none;">
+                <option value="Banco Azteca" selected>💳 Banco Azteca</option>
+                <option value="BBVA">💳 BBVA</option>
               </select>
               <button id="btnAgregarGasto" class="btn-primary">+ Añadir</button>
             </div>
@@ -662,15 +709,15 @@
           <!-- Resumen de Gastos -->
           <div class="total-summary-card">
             <div class="summary-line">
-              <span>Gastos en Efectivo (Deducibles):</span>
+              <span>(-) Salidas de Efectivo (Gastos):</span>
               <strong id="totalGastosEfectivoText">$0.00</strong>
             </div>
             <div class="summary-line">
-              <span>Cobrado por Transferencia:</span>
+              <span>(💳) Pagos al Banco (Transferencias):</span>
               <strong id="totalTransferenciasText">$0.00</strong>
             </div>
             <div class="summary-line highlight">
-              <span>Total Gastos y Deducciones:</span>
+              <span>Total Deducciones de Efectivo:</span>
               <strong id="totalGastosGeneralText">$0.00</strong>
             </div>
           </div>
@@ -845,6 +892,39 @@
             </div>
           </div>
 
+          <!-- Desglose Bancario de Transferencias (Banco Azteca vs BBVA) -->
+          <div class="transf-bank-breakdown-card" id="transfBankBreakdownCard">
+            <div class="transf-breakdown-header">
+              <div class="breakdown-header-left">
+                <span class="breakdown-icon">💳</span>
+                <span class="breakdown-title">Desglose de Transferencias</span>
+              </div>
+              <span class="breakdown-total font-tabular" id="liqTotalTransfBreakdown">$0.00</span>
+            </div>
+            <div class="transf-bank-cards-grid">
+              <div class="transf-bank-mini-card azteca">
+                <div class="bank-mini-left">
+                  <span class="bank-mini-dot">🟢</span>
+                  <div>
+                    <strong class="bank-mini-name">Banco Azteca</strong>
+                    <span class="bank-mini-count" id="countAztecaDisplay">0 pagos</span>
+                  </div>
+                </div>
+                <strong class="bank-mini-val font-tabular" id="totalAztecaDisplay">$0.00</strong>
+              </div>
+              <div class="transf-bank-mini-card bbva">
+                <div class="bank-mini-left">
+                  <span class="bank-mini-dot">🔵</span>
+                  <div>
+                    <strong class="bank-mini-name">BBVA</strong>
+                    <span class="bank-mini-count" id="countBBVADisplay">0 pagos</span>
+                  </div>
+                </div>
+                <strong class="bank-mini-val font-tabular" id="totalBBVADisplay">$0.00</strong>
+              </div>
+            </div>
+          </div>
+
           <!-- Observaciones / Notas -->
           <div class="notes-area">
             <label for="inputRecordNotas">Notas / Observaciones del Cierre:</label>
@@ -910,11 +990,29 @@
 
     <!-- Modal: Historial de Cortes -->
     <div id="modalHistory" class="modal-backdrop">
-      <div class="modal-dialog">
+      <div class="modal-dialog history-dialog-enhanced">
         <div class="modal-header">
-          <h3 class="modal-title">📂 Historial de Cortes Guardados</h3>
-          <button id="btnCloseHistory" class="btn-close">&times;</button>
+          <div class="history-title-wrap">
+            <h3 class="modal-title">📂 Historial de Cortes Guardados</h3>
+            <span class="history-kpi-sub" id="historyKpiSummary">Cargando cortes...</span>
+          </div>
+          <div class="history-header-actions">
+            <button id="btnExportHistoryCsv" class="btn-history-export" type="button" title="Descargar todos los cortes filtrados a Excel (CSV)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Exportar a Excel</span>
+            </button>
+            <button id="btnCloseHistory" class="btn-close">&times;</button>
+          </div>
         </div>
+
+        <!-- Filtros por Responsable: Todos, Isabel, Diego, Julio -->
+        <div class="history-filter-bar" id="historyFilterBar">
+          <button type="button" class="history-pill active" data-filter="all">Todos</button>
+          <button type="button" class="history-pill" data-filter="Isabel">Isabel</button>
+          <button type="button" class="history-pill" data-filter="Diego">Diego</button>
+          <button type="button" class="history-pill" data-filter="Julio">Julio</button>
+        </div>
+
         <div class="modal-body" id="historyListContainer">
           <p class="empty-state">Cargando historial...</p>
         </div>
@@ -959,6 +1057,68 @@
           <button id="alertBtnCancel" class="btn-alert-action btn-alert-secondary" style="display: none;">Cancelar</button>
           <button id="alertBtnConfirm" class="btn-alert-action btn-alert-primary">Entendido</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal: Registrar Transferencia Bancaria (Sin alert del navegador) -->
+    <div id="modalTransferencia" class="modal-backdrop alert-backdrop">
+      <div class="alert-dialog transfer-dialog" id="transferDialog">
+        <div class="alert-icon-box">
+          <div class="alert-circle-fx success">
+            <span class="alert-symbol">💳</span>
+          </div>
+        </div>
+        <h3 class="alert-title">Cobro por Transferencia</h3>
+        <p class="transfer-subtitle">Ingresa el monto y selecciona la tarjeta a la que cayó</p>
+
+        <form id="formAddTransferencia" class="transfer-form" onsubmit="event.preventDefault(); submitTransferModal();">
+          <!-- Campo de Monto -->
+          <div class="transfer-field">
+            <label class="transfer-label" for="transfModalMonto">Monto de la Transferencia ($)</label>
+            <div class="input-with-symbol transfer-amount-wrap">
+              <span class="sym">$</span>
+              <input type="number" id="transfModalMonto" class="styled-input transfer-amount-input font-tabular" placeholder="0.00" step="any" min="0.01" autocomplete="off" required>
+            </div>
+          </div>
+
+          <!-- Selector de Banco / Tarjeta -->
+          <div class="transfer-field">
+            <label class="transfer-label" for="transfModalBanco">¿A qué tarjeta cayó?</label>
+            
+            <!-- Tarjetas de selección rápida de banco -->
+            <div class="bank-pill-row">
+              <div class="bank-card-option active" id="bankOptionAzteca" onclick="selectTransferBank('Banco Azteca')">
+                <div class="bank-card-icon">🟢</div>
+                <div class="bank-card-texts">
+                  <span class="bank-card-name">Banco Azteca</span>
+                  <span class="bank-card-tag">Tarjeta Principal</span>
+                </div>
+                <div class="bank-check-dot">✓</div>
+              </div>
+              <div class="bank-card-option" id="bankOptionBBVA" onclick="selectTransferBank('BBVA')">
+                <div class="bank-card-icon">🔵</div>
+                <div class="bank-card-texts">
+                  <span class="bank-card-name">BBVA</span>
+                  <span class="bank-card-tag">Tarjeta Secundaria</span>
+                </div>
+                <div class="bank-check-dot">✓</div>
+              </div>
+            </div>
+            <input type="hidden" id="transfModalBanco" value="Banco Azteca">
+          </div>
+
+          <!-- Referencia o Cliente opcional -->
+          <div class="transfer-field">
+            <label class="transfer-label" for="transfModalRef">Cliente o Referencia <span class="transfer-opt">(Opcional)</span></label>
+            <input type="text" id="transfModalRef" class="styled-input transfer-ref-input" placeholder="Ej: Doña Mary, Mesa 3, Folio...">
+          </div>
+
+          <!-- Acciones -->
+          <div class="alert-actions" style="margin-top: 14px;">
+            <button type="button" class="btn-alert-action btn-alert-secondary" onclick="closeTransferModal()">Cancelar</button>
+            <button type="submit" class="btn-alert-action btn-alert-primary">Agregar Transferencia</button>
+          </div>
+        </form>
       </div>
     </div>
 
