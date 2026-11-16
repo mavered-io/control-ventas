@@ -16,6 +16,16 @@ export class SalesController {
     return this.salesService.getSampleFromImage();
   }
 
+  @Get('backup/export')
+  async exportBackup() {
+    return this.salesService.exportBackup();
+  }
+
+  @Post('backup/restore')
+  async restoreBackup(@Body() body: any) {
+    return this.salesService.restoreBackup(body);
+  }
+
   @Get(':id')
   async getById(@Param('id') id: string): Promise<ControlVentasRecord> {
     const record = await this.salesService.getRecordById(id);

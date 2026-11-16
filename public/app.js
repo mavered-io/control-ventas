@@ -616,7 +616,15 @@ function setupEventListeners() {
   // Agregar Gasto
   document.getElementById('btnAgregarGasto').addEventListener('click', handleAddGasto);
 
-  // Limpiar Billetes
+  // Vendido Todo (Paso 3 Devolución y Tabla Maestra)
+  document.getElementById('btnVendidoTodo')?.addEventListener('click', () => window.marcarVendidoTodo());
+  document.getElementById('deskBtnVendidoTodo')?.addEventListener('click', () => window.marcarVendidoTodo());
+
+  // Limpiar Billetes y Conteo Rápido NumPad
+  document.getElementById('btnOpenNumpad')?.addEventListener('click', () => openNumpadModal('b500'));
+  document.getElementById('deskBtnOpenNumpad')?.addEventListener('click', () => openNumpadModal('b500'));
+  document.getElementById('btnCloseNumpad')?.addEventListener('click', closeNumpadModal);
+
   document.getElementById('btnClearBilletes').addEventListener('click', () => {
     showModernConfirm({
       title: '¿Reiniciar Billetes?',
@@ -637,6 +645,10 @@ function setupEventListeners() {
   document.getElementById('btnSaveRecord').addEventListener('click', saveRecordToBackend);
   document.getElementById('btnHeaderSave')?.addEventListener('click', saveRecordToBackend);
 
+  // Copiar Resumen para WhatsApp (Texto directo con emojis)
+  document.getElementById('btnCopyWhatsAppSummary')?.addEventListener('click', copySummaryForWhatsApp);
+  document.getElementById('btnModalCopyWa')?.addEventListener('click', copySummaryForWhatsApp);
+
   // Enviar Ticket PDF por WhatsApp
   document.getElementById('btnShareWhatsApp').addEventListener('click', shareTicketViaWhatsApp);
 
@@ -651,6 +663,15 @@ function setupEventListeners() {
   document.getElementById('btnOpenHistory').addEventListener('click', openHistoryModal);
   document.getElementById('btnCloseHistory').addEventListener('click', closeHistoryModal);
   document.getElementById('btnExportHistoryCsv')?.addEventListener('click', exportHistoryToCSV);
+
+  // Respaldo y Restauración en 1 Clic (JSON)
+  document.getElementById('btnDownloadBackup')?.addEventListener('click', downloadBackupJSON);
+  document.getElementById('btnRestoreBackup')?.addEventListener('click', triggerRestoreBackup);
+  document.getElementById('backupFileInput')?.addEventListener('change', (e) => {
+    if (e.target && e.target.files && e.target.files[0]) {
+      handleBackupFileSelected(e.target.files[0]);
+    }
+  });
 
   // Filtros del historial
   document.querySelectorAll('.history-pill').forEach((pill) => {
@@ -947,18 +968,35 @@ function renderVendidos() {
   const container = document.getElementById('vendidosList');
   container.innerHTML = '';
 
+  const movMap = new Map();
+  appState.movimientos.forEach((m) => {
+    const k = (m.producto || '').trim().toLowerCase();
+    const cur = movMap.get(k) || { entradas: 0, salidas: 0 };
+    cur.entradas += Number(m.entradas) || 0;
+    cur.salidas += Number(m.salidas) || 0;
+    movMap.set(k, cur);
+  });
+
   appState.vendidos.forEach((item, index) => {
+    const k = (item.producto || '').trim().toLowerCase();
+    const env = appState.enviados.find((e) => (e.producto || '').trim().toLowerCase() === k);
+    const mov = movMap.get(k) || { entradas: 0, salidas: 0 };
+    const maxDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + mov.entradas - mov.salidas);
+
     const card = document.createElement('div');
     card.className = 'item-row-card';
     card.innerHTML = `
       <div class="item-header-line">
-        <span class="item-name">${item.producto}</span>
+        <div class="item-name-group">
+          <span class="item-name">${item.producto}</span>
+          <span class="stock-disp-pill" title="Stock disponible para venta (Carga inicial + Ajustes)">Disp: <strong>${maxDisp}</strong></span>
+        </div>
         <span class="item-unit-price">$${item.precioUnitario.toFixed(2)} c/u</span>
       </div>
       <div class="item-controls-line">
         <div class="stepper-wrap">
           <button class="stepper-btn" onclick="stepVendido(${index}, -1)">−</button>
-          <input type="number" class="stepper-input" value="${item.cantidad}" min="0" onchange="updateVendidoQty(${index}, this.value)">
+          <input type="number" class="stepper-input" value="${item.cantidad}" min="0" max="${maxDisp}" onchange="updateVendidoQty(${index}, this.value)">
           <button class="stepper-btn" onclick="stepVendido(${index}, 1)">+</button>
         </div>
         <span class="item-neto">$${(item.cantidad * item.precioUnitario).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
@@ -969,15 +1007,46 @@ function renderVendidos() {
 }
 
 window.stepVendido = (index, delta) => {
-  const current = appState.vendidos[index].cantidad;
-  const next = Math.max(0, current + delta);
-  appState.vendidos[index].cantidad = next;
+  const item = appState.vendidos[index];
+  if (!item) return;
+
+  const k = (item.producto || '').trim().toLowerCase();
+  const env = appState.enviados.find((e) => (e.producto || '').trim().toLowerCase() === k);
+  const mov = appState.movimientos.find((m) => (m.producto || '').trim().toLowerCase() === k) || { entradas: 0, salidas: 0 };
+  const maxDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + (Number(mov.entradas) || 0) - (Number(mov.salidas) || 0));
+
+  const current = Number(item.cantidad) || 0;
+  if (delta > 0 && current >= maxDisp) {
+    showToast(`⚠️ No puedes vender más de las ${maxDisp} pzs disponibles de ${item.producto}`);
+    if (navigator.vibrate) navigator.vibrate(50);
+    return;
+  }
+
+  const next = Math.min(maxDisp, Math.max(0, current + delta));
+  item.cantidad = next;
   renderVendidos();
   calculateAndRender();
 };
 
 window.updateVendidoQty = (index, val) => {
-  appState.vendidos[index].cantidad = Math.max(0, parseInt(val) || 0);
+  const item = appState.vendidos[index];
+  if (!item) return;
+
+  const k = (item.producto || '').trim().toLowerCase();
+  const env = appState.enviados.find((e) => (e.producto || '').trim().toLowerCase() === k);
+  const mov = appState.movimientos.find((m) => (m.producto || '').trim().toLowerCase() === k) || { entradas: 0, salidas: 0 };
+  const maxDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + (Number(mov.entradas) || 0) - (Number(mov.salidas) || 0));
+
+  let parsed = parseInt(val, 10);
+  if (isNaN(parsed) || parsed < 0) parsed = 0;
+
+  if (parsed > maxDisp) {
+    parsed = maxDisp;
+    showToast(`⚠️ Máximo disponible para vender: ${maxDisp} pzs de ${item.producto}`);
+    if (navigator.vibrate) navigator.vibrate(50);
+  }
+
+  item.cantidad = parsed;
   renderVendidos();
   calculateAndRender();
 };
@@ -1008,7 +1077,7 @@ function renderDevoluciones() {
         </div>
         <div class="stepper-wrap">
           <button class="stepper-btn" onclick="stepDevuelto(${index}, -1)">−</button>
-          <input type="number" class="stepper-input" value="${item.devueltoReal}" min="0" onchange="updateDevueltoQty(${index}, this.value)">
+          <input type="number" class="stepper-input" value="${item.devueltoReal}" min="0" max="${item.esperado}" onchange="updateDevueltoQty(${index}, this.value)">
           <button class="stepper-btn" onclick="stepDevuelto(${index}, 1)">+</button>
         </div>
         <div>${diffTag}</div>
@@ -1019,15 +1088,101 @@ function renderDevoluciones() {
 }
 
 window.stepDevuelto = (index, delta) => {
-  const current = appState.devoluciones[index].devueltoReal;
-  const next = Math.max(0, current + delta);
-  appState.devoluciones[index].devueltoReal = next;
+  const item = appState.devoluciones[index];
+  if (!item) return;
+
+  const k = (item.producto || '').trim().toLowerCase();
+  const env = appState.enviados.find((e) => (e.producto || '').trim().toLowerCase() === k);
+  const ven = appState.vendidos.find((v) => (v.producto || '').trim().toLowerCase() === k);
+  const mov = appState.movimientos.find((m) => (m.producto || '').trim().toLowerCase() === k) || { entradas: 0, salidas: 0 };
+
+  const totalDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + (Number(mov.entradas) || 0) - (Number(mov.salidas) || 0));
+  const cantVendida = ven ? (Number(ven.cantidad) || 0) : 0;
+  const maxEsperado = Math.max(0, totalDisp - cantVendida);
+
+  const current = Number(item.devueltoReal) || 0;
+  if (delta > 0 && current >= maxEsperado) {
+    if (maxEsperado === 0) {
+      showToast(`⚠️ No hay piezas por devolver de ${item.producto} (Todo vendido)`);
+    } else {
+      showToast(`⚠️ No puedes devolver más de las ${maxEsperado} piezas no vendidas de ${item.producto}`);
+    }
+    if (navigator.vibrate) navigator.vibrate(50);
+    return;
+  }
+
+  const next = Math.min(maxEsperado, Math.max(0, current + delta));
+  item.devueltoReal = next;
+  renderDevoluciones();
   calculateAndRender();
 };
 
 window.updateDevueltoQty = (index, val) => {
-  appState.devoluciones[index].devueltoReal = Math.max(0, parseInt(val) || 0);
+  const item = appState.devoluciones[index];
+  if (!item) return;
+
+  const k = (item.producto || '').trim().toLowerCase();
+  const env = appState.enviados.find((e) => (e.producto || '').trim().toLowerCase() === k);
+  const ven = appState.vendidos.find((v) => (v.producto || '').trim().toLowerCase() === k);
+  const mov = appState.movimientos.find((m) => (m.producto || '').trim().toLowerCase() === k) || { entradas: 0, salidas: 0 };
+
+  const totalDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + (Number(mov.entradas) || 0) - (Number(mov.salidas) || 0));
+  const cantVendida = ven ? (Number(ven.cantidad) || 0) : 0;
+  const maxEsperado = Math.max(0, totalDisp - cantVendida);
+
+  let parsed = parseInt(val, 10);
+  if (isNaN(parsed) || parsed < 0) parsed = 0;
+
+  if (parsed > maxEsperado) {
+    parsed = maxEsperado;
+    if (maxEsperado === 0) {
+      showToast(`⚠️ Todo vendido: no hay paquetes para devolver de ${item.producto}`);
+    } else {
+      showToast(`⚠️ Máximo a devolver: ${maxEsperado} piezas de ${item.producto} (lo no vendido)`);
+    }
+    if (navigator.vibrate) navigator.vibrate(50);
+  }
+
+  item.devueltoReal = parsed;
+  renderDevoluciones();
   calculateAndRender();
+};
+
+window.marcarVendidoTodo = () => {
+  const movMap = new Map();
+  appState.movimientos.forEach((m) => {
+    const k = (m.producto || '').trim().toLowerCase();
+    const cur = movMap.get(k) || { entradas: 0, salidas: 0 };
+    cur.entradas += Number(m.entradas) || 0;
+    cur.salidas += Number(m.salidas) || 0;
+    movMap.set(k, cur);
+  });
+
+  appState.enviados.forEach((env) => {
+    const k = (env.producto || '').trim().toLowerCase();
+    const mov = movMap.get(k) || { entradas: 0, salidas: 0 };
+    const totalDisp = Math.max(0, (Number(env.real) || 0) + mov.entradas - mov.salidas);
+
+    const ven = appState.vendidos.find((v) => (v.producto || '').trim().toLowerCase() === k);
+    if (ven) {
+      ven.cantidad = totalDisp;
+    }
+
+    const dev = appState.devoluciones.find((d) => (d.producto || '').trim().toLowerCase() === k);
+    if (dev) {
+      dev.devueltoReal = 0;
+    }
+  });
+
+  renderVendidos();
+  renderDevoluciones();
+  if (typeof renderDesktopMasterTable === 'function') {
+    renderDesktopMasterTable();
+  }
+  calculateAndRender();
+
+  if (navigator.vibrate) navigator.vibrate(50);
+  showToast('✓ Todo el stock marcado como vendido (0 devoluciones)');
 };
 
 // --- 5. GASTOS ---
@@ -1208,19 +1363,161 @@ function renderBilletes() {
     const row = document.createElement('div');
     row.className = 'billete-card';
     row.innerHTML = `
-      <div class="denom-tag ${d.type}">${d.label}</div>
+      <div class="denom-tag ${d.type}" onclick="openNumpadModal('${d.key}')" title="Toca para conteo táctil" style="cursor:pointer;">${d.label}</div>
       <div class="quick-stepper">
         <button class="btn-denom-fast" onclick="stepDenom('${d.key}', -1)">-1</button>
-        <input type="number" class="denom-count-input" value="${count}" min="0" onchange="updateDenom('${d.key}', this.value)">
+        <input type="number" class="denom-count-input" value="${count}" min="0" onchange="updateDenom('${d.key}', this.value)" onclick="openNumpadModal('${d.key}')">
         <button class="btn-denom-fast" onclick="stepDenom('${d.key}', 1)">+1</button>
         <button class="btn-denom-fast" onclick="stepDenom('${d.key}', 5)">+5</button>
         <button class="btn-denom-fast" onclick="stepDenom('${d.key}', 10)">+10</button>
       </div>
-      <div class="denom-subtotal">$${subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
+      <div class="denom-subtotal" onclick="openNumpadModal('${d.key}')" style="cursor:pointer;">$${subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</div>
     `;
     grid.appendChild(row);
   });
 }
+
+// --- SISTEMA DE CONTEO RÁPIDO DE BILLETES (NUMPAD TÁCTIL) ---
+let activeNumpadDenomKey = 'b500';
+let numpadBuffer = '';
+
+function openNumpadModal(denomKey) {
+  const modal = document.getElementById('modalNumpad');
+  if (!modal) return;
+  activeNumpadDenomKey = denomKey || activeNumpadDenomKey || 'b500';
+  renderNumpadDenomStrip();
+  updateNumpadDisplay(true);
+  modal.classList.add('open');
+}
+
+function closeNumpadModal() {
+  const modal = document.getElementById('modalNumpad');
+  if (modal) modal.classList.remove('open');
+}
+
+function renderNumpadDenomStrip() {
+  const strip = document.getElementById('numpadDenomStrip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  DENOMINACIONES.forEach((d) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `denom-pill-tab ${d.key === activeNumpadDenomKey ? 'active' : ''}`;
+    btn.textContent = d.label;
+    btn.onclick = () => {
+      numpadSelectDenom(d.key);
+    };
+    strip.appendChild(btn);
+  });
+}
+
+function numpadSelectDenom(key) {
+  activeNumpadDenomKey = key;
+  numpadBuffer = '';
+  renderNumpadDenomStrip();
+  updateNumpadDisplay(true);
+  if (navigator.vibrate) navigator.vibrate(25);
+}
+
+function updateNumpadDisplay(syncBufferWithCurrent = false) {
+  const d = DENOMINACIONES.find((item) => item.key === activeNumpadDenomKey) || DENOMINACIONES[0];
+  const count = appState.billetes[d.key] || 0;
+
+  if (syncBufferWithCurrent) {
+    numpadBuffer = count > 0 ? String(count) : '';
+  }
+
+  const badge = document.getElementById('numpadActiveBadge');
+  if (badge) {
+    badge.textContent = d.label;
+    badge.className = `numpad-badge ${d.type}`;
+  }
+
+  const countDisplay = document.getElementById('numpadCountDisplay');
+  if (countDisplay) {
+    countDisplay.textContent = `${count} pzs`;
+  }
+
+  const totalDisplay = document.getElementById('numpadTotalDisplay');
+  if (totalDisplay) {
+    totalDisplay.textContent = `$${(count * d.value).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+  }
+
+  const globalTotalDisplay = document.getElementById('numpadGlobalTotalDisplay');
+  if (globalTotalDisplay && appState.resumen) {
+    globalTotalDisplay.textContent = (appState.resumen.totalEfectivoFisico || 0).toLocaleString('es-MX', {
+      minimumFractionDigits: 2,
+    });
+  }
+}
+
+function numpadPressKey(digit) {
+  if (numpadBuffer.length >= 4) return;
+  numpadBuffer += digit;
+  const parsed = parseInt(numpadBuffer, 10) || 0;
+  appState.billetes[activeNumpadDenomKey] = parsed;
+
+  renderBilletes();
+  renderDesktopBilletes();
+  calculateAndRender();
+  updateNumpadDisplay(false);
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
+function numpadClear() {
+  numpadBuffer = '';
+  appState.billetes[activeNumpadDenomKey] = 0;
+  renderBilletes();
+  renderDesktopBilletes();
+  calculateAndRender();
+  updateNumpadDisplay(false);
+  if (navigator.vibrate) navigator.vibrate(35);
+}
+
+function numpadBackspace() {
+  if (numpadBuffer.length > 0) {
+    numpadBuffer = numpadBuffer.slice(0, -1);
+  }
+  const parsed = parseInt(numpadBuffer, 10) || 0;
+  appState.billetes[activeNumpadDenomKey] = parsed;
+
+  renderBilletes();
+  renderDesktopBilletes();
+  calculateAndRender();
+  updateNumpadDisplay(false);
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
+function numpadAddDelta(delta) {
+  const current = appState.billetes[activeNumpadDenomKey] || 0;
+  const next = Math.max(0, current + delta);
+  appState.billetes[activeNumpadDenomKey] = next;
+  numpadBuffer = String(next);
+
+  renderBilletes();
+  renderDesktopBilletes();
+  calculateAndRender();
+  updateNumpadDisplay(false);
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+function numpadNav(direction) {
+  const currentIndex = DENOMINACIONES.findIndex((d) => d.key === activeNumpadDenomKey);
+  let nextIndex = currentIndex + direction;
+  if (nextIndex < 0) nextIndex = DENOMINACIONES.length - 1;
+  if (nextIndex >= DENOMINACIONES.length) nextIndex = 0;
+
+  numpadSelectDenom(DENOMINACIONES[nextIndex].key);
+}
+
+window.openNumpadModal = openNumpadModal;
+window.closeNumpadModal = closeNumpadModal;
+window.numpadSelectDenom = numpadSelectDenom;
+window.numpadPressKey = numpadPressKey;
+window.numpadClear = numpadClear;
+window.numpadBackspace = numpadBackspace;
+window.numpadAddDelta = numpadAddDelta;
+window.numpadNav = numpadNav;
 
 window.stepDenom = (key, delta) => {
   const current = appState.billetes[key] || 0;
@@ -1354,7 +1651,20 @@ window.deskOnInputVendido = (index, val) => {
   const k = (item.producto || '').trim().toLowerCase();
   let ven = appState.vendidos.find(v => (v.producto || '').trim().toLowerCase() === k);
   if (ven) {
-    ven.cantidad = Math.max(0, parseInt(val) || 0);
+    const mov = appState.movimientos.find((m) => (m.producto || '').trim().toLowerCase() === k) || { entradas: 0, salidas: 0 };
+    const maxDisp = Math.max(0, (Number(item.real) || 0) + (Number(mov.entradas) || 0) - (Number(mov.salidas) || 0));
+
+    let parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 0) parsed = 0;
+
+    if (parsed > maxDisp) {
+      parsed = maxDisp;
+      showToast(`⚠️ Máximo disponible: ${maxDisp} pzs de ${item.producto}`);
+      const inputEl = document.getElementById(`deskVen_${index}`);
+      if (inputEl) inputEl.value = maxDisp;
+    }
+
+    ven.cantidad = parsed;
   }
   renderVendidos();
   calculateAndRender();
@@ -1366,7 +1676,23 @@ window.deskOnInputDevuelto = (index, val) => {
   const k = (item.producto || '').trim().toLowerCase();
   let dev = appState.devoluciones.find(d => (d.producto || '').trim().toLowerCase() === k);
   if (dev) {
-    dev.devueltoReal = Math.max(0, parseInt(val) || 0);
+    const ven = appState.vendidos.find(v => (v.producto || '').trim().toLowerCase() === k);
+    const mov = appState.movimientos.find((m) => (m.producto || '').trim().toLowerCase() === k) || { entradas: 0, salidas: 0 };
+    const totalDisp = Math.max(0, (Number(item.real) || 0) + (Number(mov.entradas) || 0) - (Number(mov.salidas) || 0));
+    const cantVendida = ven ? (Number(ven.cantidad) || 0) : 0;
+    const maxEsperado = Math.max(0, totalDisp - cantVendida);
+
+    let parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 0) parsed = 0;
+
+    if (parsed > maxEsperado) {
+      parsed = maxEsperado;
+      showToast(`⚠️ Máximo a devolver: ${maxEsperado} piezas de ${item.producto}`);
+      const inputEl = document.getElementById(`deskDevReal_${index}`);
+      if (inputEl) inputEl.value = maxEsperado;
+    }
+
+    dev.devueltoReal = parsed;
   }
   renderDevoluciones();
   calculateAndRender();
@@ -1515,7 +1841,17 @@ function calculateAndRender() {
   let totalVendidosQty = 0;
   let totalVendidoNeto = 0;
   appState.vendidos.forEach((item) => {
-    item.cantidad = Number(item.cantidad) || 0;
+    const k = (item.producto || '').trim().toLowerCase();
+    const env = appState.enviados.find((e) => (e.producto || '').trim().toLowerCase() === k);
+    const mov = movMap.get(k) || { entradas: 0, salidas: 0 };
+    const maxDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + mov.entradas - mov.salidas);
+
+    let cant = Number(item.cantidad) || 0;
+    if (cant > maxDisp) {
+      cant = maxDisp;
+      item.cantidad = cant;
+    }
+    item.cantidad = Math.max(0, cant);
     item.precioUnitario = Number(item.precioUnitario) || 0;
     item.neto = Number((item.cantidad * item.precioUnitario).toFixed(2));
     totalVendidosQty += item.cantidad;
@@ -1538,7 +1874,10 @@ function calculateAndRender() {
 
     const esperado = Math.max(0, env.real + mov.entradas - mov.salidas - cantVendida);
     const existingDev = appState.devoluciones.find((d) => (d.producto || '').trim().toLowerCase() === k);
-    const devueltoReal = existingDev ? (Number(existingDev.devueltoReal) || 0) : esperado;
+    let devueltoReal = existingDev ? (Number(existingDev.devueltoReal) || 0) : esperado;
+    if (devueltoReal > esperado) {
+      devueltoReal = esperado;
+    }
     const diferencia = devueltoReal - esperado;
 
     totalDevueltosEsperado += esperado;
@@ -1672,6 +2011,13 @@ function updateUIDisplays(res) {
   // Header KPIs
   document.getElementById('kpiVendido').textContent = formatMoney(res.totalVendidoFinal);
   document.getElementById('kpiGastos').textContent = formatMoney(res.totalGastosGeneral);
+  
+  const ventaNeta = Math.max(0, res.totalVendidoFinal - res.totalGastosEfectivo);
+  const kpiVentaNetaElem = document.getElementById('kpiVentaNeta');
+  if (kpiVentaNetaElem) {
+    kpiVentaNetaElem.textContent = formatMoney(ventaNeta);
+  }
+
   document.getElementById('kpiEsperado').textContent = formatMoney(res.efectivoEsperadoEnCaja);
   
   const diffFormatted = (res.faltaSobra >= 0 ? '+' : '') + formatMoney(res.faltaSobra);
@@ -2129,7 +2475,9 @@ async function executeSaveRecordToBackend() {
     const difTagClass = r.estaCuadrado ? 'text-emerald' : r.faltaSobra < 0 ? 'text-rose' : 'text-amber';
     const difLabel = r.estaCuadrado ? 'Cuadrado ✓' : r.faltaSobra < 0 ? `Falta ${formatMoney(Math.abs(r.faltaSobra))}` : `Sobra ${formatMoney(r.faltaSobra)}`;
 
-    showModernAlert({
+    const nextFolio = getNextFolioString(saved.folio);
+
+    showModernConfirm({
       type: 'success',
       title: '¡Corte Guardado con Éxito!',
       html: `
@@ -2145,9 +2493,16 @@ async function executeSaveRecordToBackend() {
             <div class="data-row"><span>💵 Efectivo en Caja:</span> <strong>${formatMoney(r.totalEfectivoFisico)}</strong></div>
             <div class="data-row"><span>⚖️ Balance de Caja:</span> <strong class="${difTagClass}">${difLabel}</strong></div>
           </div>
+          <div style="margin-top:12px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:0.8rem;color:var(--text-muted);text-align:center;">
+            ¿Deseas cerrar este folio y preparar automáticamente el folio <strong>#${nextFolio}</strong> en ceros?
+          </div>
         </div>
       `,
-      confirmText: '¡Excelente, Entendido!',
+      confirmText: `🔒 Cerrar y Pasar a Folio #${nextFolio}`,
+      cancelText: 'Permanecer en este corte',
+      onConfirm: () => {
+        cerrarCorteYAvanzar(nextFolio);
+      },
     });
   } catch (err) {
     console.error(err);
@@ -2689,6 +3044,9 @@ function renderFilteredHistory() {
     ? loadedHistoryRecords
     : loadedHistoryRecords.filter(r => (r.vendedor || '').toLowerCase() === currentHistoryFilter.toLowerCase());
 
+  // Actualizar métricas del Mini-Dashboard en tiempo real
+  updateHistoryDashboardMetrics(filtered);
+
   // Calcular estadísticas para el filtro actual
   let totalVendidoFiltro = 0;
   filtered.forEach(r => {
@@ -2892,6 +3250,321 @@ function exportHistoryToCSV() {
   URL.revokeObjectURL(url);
   showToast('📥 Reporte de Excel descargado');
 }
+
+// ===================================================
+// MINI-DASHBOARD DE MÉTRICAS EN HISTORIAL
+// ===================================================
+function updateHistoryDashboardMetrics(records) {
+  let totalVendido = 0;
+  let totalTransf = 0;
+  const prodQtyMap = new Map();
+
+  (records || []).forEach((r) => {
+    const res = r.resumen || {};
+    totalVendido += Number(res.totalVendidoFinal || r.totalVendidoFinal) || 0;
+    totalTransf += Number(res.totalTransferencias || r.totalTransferencias) || 0;
+
+    if (Array.isArray(r.vendidos)) {
+      r.vendidos.forEach((v) => {
+        const pName = (v.producto || '').trim();
+        if (pName) {
+          const prev = prodQtyMap.get(pName) || 0;
+          prodQtyMap.set(pName, prev + (Number(v.cantidad) || 0));
+        }
+      });
+    }
+  });
+
+  const count = (records || []).length;
+  const promedio = count > 0 ? totalVendido / count : 0;
+
+  let topProdName = '--';
+  let topProdQty = 0;
+  prodQtyMap.forEach((qty, name) => {
+    if (qty > topProdQty) {
+      topProdQty = qty;
+      topProdName = name;
+    }
+  });
+
+  const formatM = (n) => `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const elTotal = document.getElementById('histMetricTotalVendido');
+  if (elTotal) elTotal.textContent = formatM(totalVendido);
+
+  const elCount = document.getElementById('histMetricCortesCount');
+  if (elCount) elCount.textContent = `${count} ${count === 1 ? 'corte' : 'cortes'}`;
+
+  const elProm = document.getElementById('histMetricPromedio');
+  if (elProm) elProm.textContent = formatM(promedio);
+
+  const elTop = document.getElementById('histMetricTopProd');
+  if (elTop) elTop.textContent = topProdName;
+
+  const elTopQty = document.getElementById('histMetricTopQty');
+  if (elTopQty) elTopQty.textContent = `${topProdQty} pzs`;
+
+  const elTransf = document.getElementById('histMetricTotalTransf');
+  if (elTransf) elTransf.textContent = formatM(totalTransf);
+
+  const elRatio = document.getElementById('histMetricTransfRatio');
+  if (elRatio) {
+    const pct = totalVendido > 0 ? Math.round((totalTransf / totalVendido) * 100) : 0;
+    elRatio.textContent = `${pct}% del total`;
+  }
+}
+
+// ===================================================
+// RESPALDO Y RESTAURACIÓN EN 1 CLIC (JSON)
+// ===================================================
+async function downloadBackupJSON() {
+  try {
+    showToast('⏳ Generando copia de seguridad...');
+    let backupData = null;
+    try {
+      const res = await fetch(`${API_BASE}/backup/export`);
+      if (res.ok) {
+        backupData = await res.json();
+      }
+    } catch {}
+
+    if (!backupData) {
+      backupData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        appName: 'Control de Ventas & Liquidación',
+        totalRecords: (loadedHistoryRecords && loadedHistoryRecords.length) ? loadedHistoryRecords.length : 1,
+        records: (loadedHistoryRecords && loadedHistoryRecords.length) ? loadedHistoryRecords.length : [appState],
+        products: appState.enviados.map((e) => ({
+          id: e.id,
+          nombre: e.producto,
+          precioDefault: e.precioUnitario,
+        })),
+      };
+    }
+
+    const jsonStr = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = getTodayDateStr();
+    a.href = url;
+    a.download = `Respaldo_ControlVentas_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+    showToast('✅ ¡Copia de seguridad descargada exitosamente!');
+  } catch (err) {
+    console.error(err);
+    showToast('Error al generar la copia de seguridad');
+  }
+}
+
+function triggerRestoreBackup() {
+  const input = document.getElementById('backupFileInput');
+  if (input) {
+    input.value = '';
+    input.click();
+  }
+}
+
+async function handleBackupFileSelected(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+
+    if (!parsed || !Array.isArray(parsed.records)) {
+      throw new Error('El archivo no tiene el formato de respaldo válido.');
+    }
+
+    showModernConfirm({
+      title: '¿Restaurar Respaldo?',
+      message: `Se restaurarán ${parsed.records.length} corte(s) de ventas y ${parsed.products ? parsed.products.length : 0} productos. ¿Deseas continuar?`,
+      type: 'warning',
+      confirmText: 'Sí, Restaurar Datos',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        showToast('⏳ Restaurando datos en el servidor...');
+        try {
+          const res = await fetch(`${API_BASE}/backup/restore`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(parsed),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            showToast(`✅ ¡Respaldo restaurado! (${data.recordsRestored} cortes)`);
+            await openHistoryModal();
+          } else {
+            throw new Error('Error en el servidor al restaurar');
+          }
+        } catch (apiErr) {
+          console.warn('API error, restaurando localmente:', apiErr);
+          loadedHistoryRecords = parsed.records;
+          renderFilteredHistory();
+          showToast('✅ Datos restaurados localmente');
+        }
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    showModernAlert({
+      type: 'error',
+      title: 'Archivo Inválido',
+      message: 'No se pudo leer el archivo de respaldo. Asegúrate de seleccionar un archivo JSON exportado previamente.',
+    });
+  }
+}
+
+// ===================================================
+// COPIAR RESUMEN PARA WHATSAPP (TEXTO CON EMOJIS)
+// ===================================================
+function copySummaryForWhatsApp() {
+  const text = buildWhatsAppSummaryText(appState);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+        showToast('📋 ¡Resumen copiado! Listo para pegar en WhatsApp');
+      })
+      .catch(() => fallbackCopyText(text));
+  } else {
+    fallbackCopyText(text);
+  }
+}
+
+function fallbackCopyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.top = '0';
+  ta.style.left = '0';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+    showToast('📋 ¡Resumen copiado! Listo para pegar en WhatsApp');
+  } catch {
+    showToast('No se pudo copiar automáticamente');
+  }
+  document.body.removeChild(ta);
+}
+
+function buildWhatsAppSummaryText(state) {
+  const r = state.resumen || {};
+  const formatM = (n) => `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const ventaNeta = Math.max(0, (r.totalVendidoFinal || 0) - (r.totalGastosEfectivo || 0));
+
+  let text = `🌯 *CONTROL & LIQUIDACIÓN DE VENTAS*\n`;
+  text += `📄 *Folio:* ${state.folio || '0013'}  •  📅 *Fecha:* ${state.fecha || getTodayDateStr()}\n`;
+  text += `👤 *Responsable:* ${state.vendedor || 'Isabel Hdez'}\n`;
+  text += `──────────────────────\n`;
+  text += `📦 *Despachado:* ${r.totalPaquetesEnviadosReal || 0} pzs (${formatM(r.totalValorEnviado)})\n`;
+  text += `💰 *Total Vendido:* ${r.totalPaquetesVendidos || 0} pzs (${formatM(r.totalVendidoFinal)})\n`;
+  text += `🔄 *Devolución:* ${r.totalPaquetesDevueltos || 0} pzs (Dif: ${r.diferenciaPaquetesTotal || 0} pzs)\n`;
+  text += `──────────────────────\n`;
+  text += `🧾 *Gastos Deducibles:* ${formatM(r.totalGastosEfectivo)}\n`;
+  if (state.gastos && state.gastos.length > 0) {
+    state.gastos.forEach((g) => {
+      const icon = g.tipo === 'transferencia' ? `💳 [${g.banco || 'Banco'}]` : '💵';
+      text += `  • ${icon} ${g.concepto}: ${formatM(g.monto)}\n`;
+    });
+  }
+  if ((r.totalTransferencias || 0) > 0) {
+    text += `💳 *Cobrado por Transferencia:* ${formatM(r.totalTransferencias)}\n`;
+  }
+  text += `📈 *VENTA NETA REAL:* ${formatM(ventaNeta)}\n`;
+  text += `──────────────────────\n`;
+  text += `💵 *Efectivo en Caja:* ${formatM(r.totalEfectivoFisico)}\n`;
+  text += `🎯 *Efectivo Esperado:* ${formatM(r.efectivoEsperadoEnCaja)}\n`;
+
+  if (Math.abs(r.faltaSobra || 0) < 0.01) {
+    text += `⚖️ *ESTADO:* ✅ ¡CAJA CUADRADA AL 100%! 🎉\n`;
+  } else if ((r.faltaSobra || 0) < 0) {
+    text += `⚖️ *ESTADO:* ⚠️ FALTANTE EN CAJA: -${formatM(Math.abs(r.faltaSobra))}\n`;
+  } else {
+    text += `⚖️ *ESTADO:* ➕ SOBRANTE EN CAJA: +${formatM(r.faltaSobra)}\n`;
+  }
+  if (state.notas && state.notas.trim()) {
+    text += `📝 *Notas:* ${state.notas.trim()}\n`;
+  }
+  text += `──────────────────────`;
+  return text;
+}
+
+// ===================================================
+// AVANCE AUTOMÁTICO DE FOLIO AL CERRAR CORTE
+// ===================================================
+function getNextFolioString(currentFolio) {
+  if (!currentFolio) return '0001';
+  const match = String(currentFolio).match(/^(.*?)(\d+)$/);
+  if (match) {
+    const prefix = match[1] || '';
+    const num = parseInt(match[2], 10) + 1;
+    const padLen = match[2].length;
+    return `${prefix}${String(num).padStart(padLen, '0')}`;
+  }
+  return `${currentFolio}-1`;
+}
+
+function cerrarCorteYAvanzar(nextFolio) {
+  appState.currentRecordId = null;
+  appState.folio = nextFolio;
+  localStorage.setItem('cv_folio_current', nextFolio);
+  clearActiveDraft();
+
+  // Reiniciar valores para la siguiente jornada
+  appState.cambioInicial = 0;
+  appState.otrosPreciosVenta = 0;
+  appState.ajusteAdicional = 0;
+  appState.gastos = [];
+  appState.notas = '';
+  Object.keys(appState.billetes).forEach((k) => (appState.billetes[k] = 0));
+  appState.enviados.forEach((item) => (item.real = 0));
+  appState.movimientos.forEach((m) => {
+    m.entradas = 0;
+    m.salidas = 0;
+  });
+  appState.vendidos.forEach((v) => (v.cantidad = 0));
+  appState.devoluciones.forEach((d) => (d.devueltoReal = 0));
+
+  const folioInput = document.getElementById('recordFolioInput');
+  if (folioInput) folioInput.value = nextFolio;
+  const headerFolio = document.getElementById('headerFolio');
+  if (headerFolio) headerFolio.textContent = `Folio: ${nextFolio}`;
+
+  renderEnviados();
+  renderMovimientos();
+  renderVendidos();
+  renderDevoluciones();
+  renderGastos();
+  renderBilletes();
+  renderDesktopBilletes();
+  if (typeof renderDesktopMasterTable === 'function') {
+    renderDesktopMasterTable();
+  }
+  calculateAndRender();
+
+  goToStep(1);
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+  showToast(`🔒 Folio anterior cerrado. Folio #${nextFolio} listo para trabajar`);
+}
+
+window.downloadBackupJSON = downloadBackupJSON;
+window.triggerRestoreBackup = triggerRestoreBackup;
+window.handleBackupFileSelected = handleBackupFileSelected;
+window.copySummaryForWhatsApp = copySummaryForWhatsApp;
+window.getNextFolioString = getNextFolioString;
+window.cerrarCorteYAvanzar = cerrarCorteYAvanzar;
 
 function closeHistoryModal() {
   document.getElementById('modalHistory').classList.remove('open');
@@ -3188,4 +3861,28 @@ function showModernConfirm({
     cleanup();
     if (typeof onCancel === 'function') onCancel();
   };
+}
+
+// ===================================================
+// PWA OFFLINE: REGISTRO DE SERVICE WORKER
+// ===================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => {
+        console.log('✅ Service Worker PWA activo:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('⚠️ Service Worker offline no registrado:', err);
+      });
+  });
+
+  window.addEventListener('online', () => {
+    showToast('📶 Conexión a internet restablecida');
+  });
+
+  window.addEventListener('offline', () => {
+    showToast('📴 Modo sin conexión activo (Tus datos se guardan en el celular)');
+  });
 }

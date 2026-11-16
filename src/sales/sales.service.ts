@@ -103,11 +103,15 @@ export class SalesService implements OnModuleInit {
       movMap.set(prodKey, current);
     });
 
-    // 3. Vendidos
+    // 3. Vendidos (Limitados al producto disponible: inicial + entradas - salidas)
     let totalPaquetesVendidos = 0;
     let totalVendidoNeto = 0;
     const vendidosCalculados: PaqueteVendido[] = (payload.vendidos || []).map((ven) => {
-      const cant = Number(ven.cantidad) || 0;
+      const prodKey = (ven.producto || '').trim().toLowerCase();
+      const env = enviadosCalculados.find((e) => (e.producto || '').trim().toLowerCase() === prodKey);
+      const mov = movMap.get(prodKey) || { entradas: 0, salidas: 0 };
+      const maxDisp = Math.max(0, (env ? Number(env.real) || 0 : 0) + mov.entradas - mov.salidas);
+      const cant = Math.min(maxDisp, Math.max(0, Number(ven.cantidad) || 0));
       const precio = Number(ven.precioUnitario) || 0;
       const neto = Number((cant * precio).toFixed(2));
       totalPaquetesVendidos += cant;
@@ -139,7 +143,10 @@ export class SalesService implements OnModuleInit {
       const mov = movMap.get(prodKey) || { entradas: 0, salidas: 0 };
 
       const esperado = Math.max(0, env.real + mov.entradas - mov.salidas - cantVendida);
-      const devueltoReal = devMapReal.has(prodKey) ? devMapReal.get(prodKey)! : esperado;
+      let devueltoReal = devMapReal.has(prodKey) ? devMapReal.get(prodKey)! : esperado;
+      if (devueltoReal > esperado) {
+        devueltoReal = esperado;
+      }
       const diferencia = devueltoReal - esperado;
 
       totalPaquetesDevueltos += devueltoReal;
@@ -374,6 +381,65 @@ export class SalesService implements OnModuleInit {
     this.records.splice(index, 1);
     await this.saveToFile();
     return true;
+  }
+
+  async exportBackup(): Promise<any> {
+    let products: any[] = [];
+    try {
+      const prodPath = path.join(this.dataDir, 'products.json');
+      const prodRaw = await fs.readFile(prodPath, 'utf-8');
+      products = JSON.parse(prodRaw);
+    } catch {
+      products = [];
+    }
+
+    return {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      appName: 'Control de Ventas & Liquidación',
+      totalRecords: this.records.length,
+      records: this.records,
+      products,
+    };
+  }
+
+  async restoreBackup(backupData: any): Promise<{ success: boolean; recordsRestored: number; productsRestored: number }> {
+    if (!backupData || !Array.isArray(backupData.records)) {
+      throw new Error('Formato de respaldo inválido: Debe contener la lista de "records".');
+    }
+
+    // 1. Restaurar registros de ventas
+    this.records = backupData.records;
+    await this.saveToFile();
+
+    // Sincronizar a MySQL si está conectado
+    if (this.dbService.isConnected && this.dbService.salesRepo) {
+      try {
+        for (const rec of this.records) {
+          await this.dbService.salesRepo.save(rec as any);
+        }
+      } catch (err) {
+        console.warn('Error restaurando a MySQL:', err);
+      }
+    }
+
+    // 2. Restaurar productos si vienen incluidos
+    let productsRestored = 0;
+    if (Array.isArray(backupData.products) && backupData.products.length > 0) {
+      try {
+        const prodPath = path.join(this.dataDir, 'products.json');
+        await fs.writeFile(prodPath, JSON.stringify(backupData.products, null, 2), 'utf-8');
+        productsRestored = backupData.products.length;
+      } catch (err) {
+        console.warn('Error restaurando products.json:', err);
+      }
+    }
+
+    return {
+      success: true,
+      recordsRestored: this.records.length,
+      productsRestored,
+    };
   }
 
   getSampleFromImage(): Partial<ControlVentasRecord> {

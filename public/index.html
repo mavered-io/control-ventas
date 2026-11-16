@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#090a0d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Control de Ventas & Liquidación Móvil</title>
@@ -120,6 +120,10 @@
           <span class="kpi-value highlight-amber font-tabular" id="kpiGastos">$0.00</span>
         </div>
         <div class="kpi-pill">
+          <span class="kpi-label">VENTA NETA</span>
+          <span class="kpi-value highlight-teal font-tabular" id="kpiVentaNeta">$0.00</span>
+        </div>
+        <div class="kpi-pill">
           <span class="kpi-label">EFECTIVO ESPERADO</span>
           <span class="kpi-value highlight-cyan font-tabular" id="kpiEsperado">$0.00</span>
         </div>
@@ -148,6 +152,10 @@
             </div>
           </div>
           <div class="desk-header-controls">
+            <button id="deskBtnVendidoTodo" class="btn-chip btn-vendido-todo" type="button" title="Marcar todo el stock disponible como vendido (0 devoluciones)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Vendido Todo</span>
+            </button>
             <div class="desk-input-pill">
               <span class="pill-label">Fondo de Cambio:</span>
               <span class="sym">$</span>
@@ -266,7 +274,10 @@
                 <p class="desk-subtitle sm">Conteo físico de efectivo y transferencias</p>
               </div>
             </div>
-            <button id="deskBtnClearBilletes" class="desk-btn-text" title="Limpiar conteo a 0">Limpiar</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button id="deskBtnOpenNumpad" class="desk-btn-text" type="button" title="Abrir teclado táctil para conteo rápido">⚡ Conteo Rápido</button>
+              <button id="deskBtnClearBilletes" class="desk-btn-text" title="Limpiar conteo a 0">Limpiar</button>
+            </div>
           </div>
 
           <!-- MÓDULO DE TRANSFERENCIA DENTRO DE ARQUEO -->
@@ -619,12 +630,13 @@
               <h2 class="section-title">🔄 Paquetes Devueltos (Final)</h2>
               <p class="section-desc">Auditoría de producto físico devuelto vs esperado</p>
             </div>
-            <div class="badge-status" id="badgeStockAuditStatus">Verificando...</div>
-          </div>
-
-          <div class="stock-formula-banner">
-            <span class="banner-icon">ℹ️</span>
-            <span>Esperado = Enviado Real + Entradas - Salidas - Vendido</span>
+            <div class="section-header-actions">
+              <button id="btnVendidoTodo" class="btn-chip btn-vendido-todo" type="button" title="Marcar todo el stock disponible como vendido (0 devoluciones)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Vendido Todo</span>
+              </button>
+              <div class="badge-status" id="badgeStockAuditStatus">Verificando...</div>
+            </div>
           </div>
 
           <!-- Cabecera de Tabla para Pantallas Grandes -->
@@ -745,7 +757,12 @@
               <h2 class="section-title">💵 Arqueo de Caja & Valores</h2>
               <p class="section-desc">Conteo de efectivo y comprobantes de transferencia</p>
             </div>
-            <button id="btnClearBilletes" class="btn-chip btn-outline-chip">Limpiar a 0</button>
+            <div class="section-header-actions">
+              <button id="btnOpenNumpad" class="btn-chip btn-numpad-launch" type="button" title="Abrir teclado táctil para conteo rápido de caja">
+                ⚡ Conteo Rápido
+              </button>
+              <button id="btnClearBilletes" class="btn-chip btn-outline-chip">Limpiar a 0</button>
+            </div>
           </div>
 
           <!-- Módulo Transferencia en Móvil -->
@@ -933,10 +950,13 @@
 
           <!-- Action Buttons Bar -->
           <div class="action-buttons-grid">
-            <button id="btnSaveRecord" class="btn-hero btn-emerald">
+            <button id="btnSaveRecord" class="btn-hero btn-emerald" title="Guardar corte oficial en base de datos / servidor">
               💾 Guardar Corte
             </button>
-            <button id="btnShareWhatsApp" class="btn-hero btn-whatsapp" title="Generar Ticket PDF y Compartir por WhatsApp">
+            <button id="btnCopyWhatsAppSummary" class="btn-hero btn-whatsapp" title="Copiar resumen del corte con emojis para pegar directo en WhatsApp">
+              📋 Copiar a WhatsApp
+            </button>
+            <button id="btnShareWhatsApp" class="btn-hero btn-whatsapp-subtle" title="Generar Ticket PDF y Compartir por WhatsApp">
               📲 Enviar Ticket PDF
             </button>
             <button id="btnPrintTicket" class="btn-hero btn-slate" title="Ver Ticket y Descargar PDF">
@@ -997,9 +1017,18 @@
             <span class="history-kpi-sub" id="historyKpiSummary">Cargando cortes...</span>
           </div>
           <div class="history-header-actions">
+            <button id="btnDownloadBackup" class="btn-history-backup" type="button" title="Descargar copia de seguridad completa (JSON)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Respaldo</span>
+            </button>
+            <button id="btnRestoreBackup" class="btn-history-restore" type="button" title="Restaurar copia de seguridad desde un archivo JSON">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Restaurar</span>
+            </button>
+            <input type="file" id="backupFileInput" accept=".json" style="display:none;">
             <button id="btnExportHistoryCsv" class="btn-history-export" type="button" title="Descargar todos los cortes filtrados a Excel (CSV)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Exportar a Excel</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Excel</span>
             </button>
             <button id="btnCloseHistory" class="btn-close">&times;</button>
           </div>
@@ -1011,6 +1040,27 @@
           <button type="button" class="history-pill" data-filter="Isabel">Isabel</button>
           <button type="button" class="history-pill" data-filter="Diego">Diego</button>
           <button type="button" class="history-pill" data-filter="Julio">Julio</button>
+        </div>
+
+        <!-- Mini-Dashboard Ejecutivo de Métricas del Historial -->
+        <div class="history-metrics-grid" id="historyMetricsGrid">
+          <div class="hist-metric-card">
+            <div class="hist-metric-header">
+              <span class="hist-metric-icon">📈</span>
+              <span class="hist-metric-title">Promedio / Corte</span>
+            </div>
+            <strong class="hist-metric-value text-cyan font-tabular" id="histMetricPromedio">$0.00</strong>
+            <span class="hist-metric-sub">Por jornada</span>
+          </div>
+
+          <div class="hist-metric-card">
+            <div class="hist-metric-header">
+              <span class="hist-metric-icon">🏆</span>
+              <span class="hist-metric-title">Más Vendido</span>
+            </div>
+            <strong class="hist-metric-value text-amber" id="histMetricTopProd">--</strong>
+            <span class="hist-metric-sub" id="histMetricTopQty">0 pzs</span>
+          </div>
         </div>
 
         <div class="modal-body" id="historyListContainer">
@@ -1030,8 +1080,11 @@
           <!-- Contenido del ticket -->
         </div>
         <div class="modal-footer no-print ticket-footer-actions">
+          <button id="btnModalCopyWa" class="btn-ticket-modal btn-wa-copy" type="button" title="Copiar texto con formato y emojis para WhatsApp">
+            📋 Copiar Resumen
+          </button>
           <button id="btnModalSharePdf" class="btn-ticket-modal btn-wa">
-            📲 Enviar a WhatsApp
+            📲 Enviar PDF WA
           </button>
           <button id="btnModalDownloadPdf" class="btn-ticket-modal btn-download">
             📥 Descargar PDF
@@ -1119,6 +1172,62 @@
             <button type="submit" class="btn-alert-action btn-alert-primary">Agregar Transferencia</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal: Conteo Rápido de Billetes (NumPad Táctil) -->
+    <div id="modalNumpad" class="modal-backdrop numpad-backdrop">
+      <div class="numpad-sheet" id="numpadSheet">
+        <div class="numpad-header">
+          <div class="numpad-denom-info">
+            <span class="numpad-badge" id="numpadActiveBadge">$500</span>
+            <div class="numpad-denom-details">
+              <span class="numpad-count" id="numpadCountDisplay">0 pzs</span>
+              <span class="numpad-total" id="numpadTotalDisplay">$0.00</span>
+            </div>
+          </div>
+          <button id="btnCloseNumpad" class="btn-close" type="button">&times;</button>
+        </div>
+
+        <!-- Selector horizontal de denominaciones -->
+        <div class="numpad-denom-strip" id="numpadDenomStrip"></div>
+
+        <!-- Botones de incremento rápido -->
+        <div class="numpad-quick-adds">
+          <button type="button" class="btn-quick-add" onclick="numpadAddDelta(1)">+1</button>
+          <button type="button" class="btn-quick-add" onclick="numpadAddDelta(5)">+5</button>
+          <button type="button" class="btn-quick-add" onclick="numpadAddDelta(10)">+10</button>
+          <button type="button" class="btn-quick-add" onclick="numpadAddDelta(20)">+20</button>
+        </div>
+
+        <!-- Teclado Numérico Táctil 3x4 -->
+        <div class="numpad-grid">
+          <button type="button" class="numpad-key" onclick="numpadPressKey('1')">1</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('2')">2</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('3')">3</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('4')">4</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('5')">5</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('6')">6</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('7')">7</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('8')">8</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('9')">9</button>
+          <button type="button" class="numpad-key key-clear" onclick="numpadClear()">C</button>
+          <button type="button" class="numpad-key" onclick="numpadPressKey('0')">0</button>
+          <button type="button" class="numpad-key key-backspace" onclick="numpadBackspace()">⌫</button>
+        </div>
+
+        <!-- Navegación entre denominaciones -->
+        <div class="numpad-nav-bar">
+          <button type="button" class="btn-numpad-nav" id="btnNumpadPrev" onclick="numpadNav(-1)">
+            ◀ Anterior
+          </button>
+          <button type="button" class="btn-numpad-done" onclick="closeNumpadModal()">
+            ✓ Listo ($<span id="numpadGlobalTotalDisplay">0.00</span>)
+          </button>
+          <button type="button" class="btn-numpad-nav" id="btnNumpadNext" onclick="numpadNav(1)">
+            Siguiente ▶
+          </button>
+        </div>
       </div>
     </div>
 
